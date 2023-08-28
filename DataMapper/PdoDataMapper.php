@@ -7,8 +7,6 @@
  * @copyright  2022
  * @author     Joshua Parker <joshua@joshuaparker.dev>
  * @license    https://opensource.org/licenses/mit-license.php MIT License
- *
- * @since      0.1.0
  */
 
 declare(strict_types=1);
@@ -96,7 +94,7 @@ class PdoDataMapper implements DataMapper
         $sql .= $this->buildLimitOffsetString(limit: $options['limit'] ?? 10, offset: $options['offset'] ?? 0);
 
         $stmt = $this->pdo->prepare(query: $sql);
-        $stmt->execute(params: [':'.$column => $value]);
+        $stmt->execute(params: [':' . $column => $value]);
         $rows = $stmt->fetchAll(mode: PDO::FETCH_ASSOC);
 
         $objects = [];

@@ -7,8 +7,6 @@
  * @copyright  2022
  * @author     Joshua Parker <joshua@joshuaparker.dev>
  * @license    https://opensource.org/licenses/mit-license.php MIT License
- *
- * @since      0.1.0
  */
 
 declare(strict_types=1);
@@ -81,19 +79,25 @@ class Row
         return json_encode($json);
     }
 
-    /**
-     * @throws ReadOnlyException
-     */
     public function save(): Model|int|bool|OrmBuilder
     {
-        return $this->model->save();
+        try {
+            return $this->model->save();
+        } catch (ReadOnlyException $e) {
+            error_log($e->getMessage());
+        } finally {
+            return false;
+        }
     }
 
-    /**
-     * @throws ReadOnlyException
-     */
     public function delete(): bool|int|OrmBuilder|null
     {
-        return $this->model->delete();
+        try {
+            return $this->model->delete();
+        } catch (ReadOnlyException $e) {
+            error_log($e->getMessage());
+        } finally {
+            return false;
+        }
     }
 }

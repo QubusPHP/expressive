@@ -7,8 +7,6 @@
  * @copyright  2022
  * @author     Joshua Parker <joshua@joshuaparker.dev>
  * @license    https://opensource.org/licenses/mit-license.php MIT License
- *
- * @since      0.1.0
  */
 
 declare(strict_types=1);
@@ -361,7 +359,7 @@ class Model
         return new HasMany(parent: $this, related: new $related(), foreignKey: $foreignKey);
     }
 
-    public function belongsTo(Model|string $related, string|int|null  $foreignKey = null): BelongsTo
+    public function belongsTo(Model|string $related, string|int|null $foreignKey = null): BelongsTo
     {
         if (is_null__(var: $foreignKey)) {
             $foreignKey = strtolower(string: $related) . '_id';
@@ -581,7 +579,7 @@ class Model
         $accessor = 'getAttr' . camel_case(str: $field);
 
         return method_exists(object_or_class: $this, method: $accessor)
-            ? call_user_func([$this, $accessor], $value, $this) : $value;
+        ? call_user_func([$this, $accessor], $value, $this) : $value;
     }
 
     public function __set(mixed $field, mixed $value)
