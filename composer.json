@@ -7,19 +7,19 @@
     "authors": [
         {
             "name": "Joshua Parker",
-            "email": "josh@joshuaparker.blog"
+            "email": "joshua@joshuaparker.dev"
         }
     ],
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.2",
         "ext-pdo": "*",
-        "qubus/config": "^2.0",
-        "qubus/dbal": "^1.0"
+        "qubus/config": "^3",
+        "qubus/dbal": "^2"
     },
     "require-dev": {
-        "laminas/laminas-coding-standard": "^2.0",
         "mockery/mockery": "^1.3.1",
         "phpunit/phpunit": "^9.0",
+        "qubus/qubus-coding-standard": "^1.1",
         "squizlabs/php_codesniffer": "^3.5"
     },
     "autoload": {

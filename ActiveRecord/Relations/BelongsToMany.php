@@ -7,8 +7,6 @@
  * @copyright  2022
  * @author     Joshua Parker <joshua@joshuaparker.dev>
  * @license    https://opensource.org/licenses/mit-license.php MIT License
- *
- * @since      0.1.0
  */
 
 declare(strict_types=1);
@@ -71,7 +69,8 @@ class BelongsToMany extends Relation
 
         foreach ($this->eagerResults as $row) {
             foreach ($this->pivotResult as $pivotRow) {
-                if ($parent->getData(field: $parent->getPrimaryKey()) == $pivotRow[$this->foreignKey] &&
+                if (
+                    $parent->getData(field: $parent->getPrimaryKey()) == $pivotRow[$this->foreignKey] &&
                     $row->getData($row->getPrimaryKey()) == $pivotRow[$this->otherKey]
                 ) {
                     $return[] = $row;

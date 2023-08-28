@@ -7,8 +7,6 @@
  * @copyright  2022
  * @author     Joshua Parker <joshua@joshuaparker.dev>
  * @license    https://opensource.org/licenses/mit-license.php MIT License
- *
- * @since      0.1.0
  */
 
 declare(strict_types=1);
@@ -46,7 +44,6 @@ use function func_num_args;
 use function implode;
 use function is_array;
 use function is_callable;
-use function is_null;
 use function is_numeric;
 use function preg_match;
 use function preg_replace_callback;
@@ -63,7 +60,7 @@ use const COUNT_RECURSIVE;
 class OrmBuilder implements IteratorAggregate, Stringable
 {
     use TapObjectAware;
-    
+
     // Operators
     public const OPERATOR_AND = ' AND ';
     public const OPERATOR_OR = ' OR ';
@@ -570,7 +567,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
         );
         $this->whereConditions = array_merge($this->whereConditions, $spliced);
 
-        array_push($this->whereConditions, ')');
+        $this->whereConditions[] = ')';
         $this->lastWrapPosition = count($this->whereConditions);
 
         return $this;
@@ -1083,7 +1080,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
     }
 
     /**
-     * Detect if its a single row instance and reset it to PK.
+     * Detect if it's a single row instance and reset it to PK.
      *
      * @return OrmBuilder
      */
@@ -1128,8 +1125,8 @@ class OrmBuilder implements IteratorAggregate, Stringable
 
     /**
      * Insert new rows
-     * $data can be 2 dimensional to add a bulk insert
-     * If a single row is inserted, it will return it's row instance
+     * $data can be 2-dimensional to add a bulk insert
+     * If a single row is inserted, it will return its row instance
      *
      * @param  array    $data - data to populate
      * @return OrmBuilder|int
@@ -1270,8 +1267,8 @@ class OrmBuilder implements IteratorAggregate, Stringable
             ];
             $this->query(implode(separator: ' ', array: $query), $this->getWhereParameters());
         } elseif ($deleteAll) {
-                $query = "DELETE FROM {$this->tableName}";
-                $this->query(query: $query);
+            $query = "DELETE FROM {$this->tableName}";
+            $this->query(query: $query);
         } else {
             return false;
         }
@@ -1348,8 +1345,8 @@ class OrmBuilder implements IteratorAggregate, Stringable
                 $this->set(key: $keyKey, value: $keyValue);
             }
         } elseif ($key !== $this->getPrimaryKeyname()) {
-                $this->data[$key] = $value;
-                $this->dirtyFields[$key] = $value;
+            $this->data[$key] = $value;
+            $this->dirtyFields[$key] = $value;
         }
         return $this;
     }
@@ -1704,8 +1701,10 @@ class OrmBuilder implements IteratorAggregate, Stringable
     protected function prepareColumn(string $column): string
     {
         $column = trim(string: $column);
-        if (strpos(haystack: $column, needle: '.') === false
-            && strpos(haystack: strtoupper(string: $column), needle: 'NULL') === false) {
+        if (
+            strpos(haystack: $column, needle: '.') === false
+            && strpos(haystack: strtoupper(string: $column), needle: 'NULL') === false
+        ) {
             if (! preg_match('/^[0-9]/', $column)) {
                 $column = "%this.{$column}";
             }
