@@ -3,5 +3,4 @@
 vendor
 composer.lock
 index.php
-OrmException.php
 Sql.php
