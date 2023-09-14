@@ -14,11 +14,13 @@ declare(strict_types=1);
 namespace Qubus\Expressive;
 
 use ArrayIterator;
+use Closure;
 use DateTime;
 use Exception;
 use InternalIterator;
 use IteratorAggregate;
 use PDO;
+use PDOException;
 use PDOStatement;
 use Qubus\Dbal\Connection;
 use Qubus\Dbal\Schema;
@@ -32,7 +34,6 @@ use function array_key_exists;
 use function array_keys;
 use function array_map;
 use function array_merge;
-use function array_push;
 use function array_shift;
 use function array_splice;
 use function array_unique;
@@ -1324,6 +1325,43 @@ class OrmBuilder implements IteratorAggregate, Stringable
     public function rollBack(): bool
     {
         return $this->connection->getPdo()->rollBack();
+    }
+
+    /**
+     * Run transactional queries.
+     *
+     * @param Closure $callback transaction callback
+     * @throws Exception
+     */
+    public function transactional(Closure $callback, mixed $that = null, mixed $default = null)
+    {
+        if (is_null__($that)) {
+            $that = $this;
+        }
+
+        // check if we are in a transaction
+        if ($this->inTransaction()) {
+            return $callback($that);
+        }
+
+        $result = $default;
+
+        try {
+            // start the transaction
+            $this->beginTransaction();
+
+            // execute the callback
+            $result = $callback($this);
+
+            // all fine, commit the transaction
+            $this->commit();
+        } catch (PDOException $e) { // catch any errors generated in the callback
+            // rollback on error
+            $this->rollBack();
+            throw new OrmException(message: $e->getMessage(), code: (int) $e->getCode());
+        }
+
+        return $result;
     }
 
     /* ------------------------------------------------------------------------------
