@@ -16,18 +16,18 @@ namespace Qubus\Expressive\ActiveRecord;
 use ArrayIterator;
 use Countable;
 use IteratorAggregate;
-use Qubus\Expressive\OrmBuilder;
+use Qubus\Expressive\QueryBuilder;
 
 use const JSON_PRETTY_PRINT;
 
 class Result implements Countable, IteratorAggregate
 {
     protected ?Model $model = null;
-    protected ?OrmBuilder $query = null;
+    protected ?QueryBuilder $query = null;
 
     protected array $rows;
 
-    public function __construct(Model $model, OrmBuilder $query = null)
+    public function __construct(Model $model, QueryBuilder $query = null)
     {
         $this->model = $model;
         $this->query = $query;

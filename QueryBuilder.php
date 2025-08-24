@@ -63,24 +63,24 @@ class QueryBuilder implements IteratorAggregate, Stringable
     use TapObjectAware;
 
     // Operators
-    public const OPERATOR_AND = ' AND ';
-    public const OPERATOR_OR = ' OR ';
+    public const string OPERATOR_AND = ' AND ';
+    public const string OPERATOR_OR = ' OR ';
 
     // Directional filter
-    public const ORDERBY_ASC = 'ASC';
-    public const ORDERBY_DESC = 'DESC';
+    public const string ORDERBY_ASC = 'ASC';
+    public const string ORDERBY_DESC = 'DESC';
 
     // Joins
-    public const JOIN_INNER = 'INNER';
-    public const JOIN_OUTER = 'OUTER';
-    public const JOIN_LEFT = 'LEFT';
-    public const JOIN_RIGHT = 'RIGHT';
-    public const JOIN_RIGHT_OUTER = 'RIGHT OUTER';
-    public const JOIN_LEFT_OUTER = 'LEFT OUTER';
+    public const string JOIN_INNER = 'INNER';
+    public const string JOIN_OUTER = 'OUTER';
+    public const string JOIN_LEFT = 'LEFT';
+    public const string JOIN_RIGHT = 'RIGHT';
+    public const string JOIN_RIGHT_OUTER = 'RIGHT OUTER';
+    public const string JOIN_LEFT_OUTER = 'LEFT OUTER';
 
-    public const EOL = "\n";
-    public const TAB = "\t";
-    public const EOL_TAB = "\n\t";
+    public const string EOL = "\n";
+    public const string TAB = "\t";
+    public const string EOL_TAB = "\n\t";
 
     protected ?Connection $connection = null;
     protected ?string $tableName = null;
@@ -141,14 +141,12 @@ class QueryBuilder implements IteratorAggregate, Stringable
 
     public static function fromInstance(
         Connection $connection,
-        string $table,
         string $primaryKeyName = 'id',
         ?string $tablePrefix = null
     ): self {
-        return (new self($connection))
+        return new self($connection)
         ->setStructure(primaryKeyName: $primaryKeyName)
-        ->setTablePrefix(tablePrefix: $tablePrefix)
-        ->table(tableName: $table);
+        ->setTablePrefix(tablePrefix: $tablePrefix);
     }
 
     /**
@@ -1011,7 +1009,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
         $columns = [];
         foreach ($this->whereConditions as $condition) {
             $column = $condition['COLUMN'];
-            $columns[$column] = strpos(haystack: $column, needle: '.') === false ? "%this.{$column}" : $column;
+            $columns[$column] = !str_contains($column, '.') ? "%this.{$column}" : $column;
         }
         $stmt = str_replace(
             search: array_keys(array: $columns),
@@ -1035,7 +1033,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
             $arg = array_shift($params);
             if (is_numeric(value: $arg)) {
                 return $arg;
-            } elseif (strpos(haystack: $arg, needle: '%') !== false) {
+            } elseif (str_contains($arg, '%')) {
                 return $arg;
             } else {
                 return "'{$arg}'";
@@ -1358,7 +1356,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
         } catch (PDOException $e) { // catch any errors generated in the callback
             // rollback on error
             $this->rollBack();
-            throw new OrmException(message: $e->getMessage(), code: (int) $e->getCode());
+            throw new QueryBuilderException(message: $e->getMessage(), code: (int) $e->getCode());
         }
 
         return $result;
@@ -1489,7 +1487,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
     }
 
     /**
-     * Get the a key
+     * Get the key
      *
      * @param string $key
      * @return mixed
@@ -1620,7 +1618,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
      */
     public static function now(string $datetime = 'now'): string
     {
-        return (new DateTime(datetime: $datetime ?: 'now'))->format(format: 'Y-m-d H:i:s');
+        return new DateTime(datetime: $datetime ?: 'now')->format(format: 'Y-m-d H:i:s');
     }
 
     // QueryBuilder Debugger
@@ -1740,8 +1738,8 @@ class QueryBuilder implements IteratorAggregate, Stringable
     {
         $column = trim(string: $column);
         if (
-            strpos(haystack: $column, needle: '.') === false
-            && strpos(haystack: strtoupper(string: $column), needle: 'NULL') === false
+            !str_contains($column, '.')
+            && !str_contains(strtoupper(string: $column), 'NULL')
         ) {
             if (! preg_match('/^[0-9]/', $column)) {
                 $column = "%this.{$column}";

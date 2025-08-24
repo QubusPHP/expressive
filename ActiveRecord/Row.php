@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Qubus\Expressive\ActiveRecord;
 
 use Qubus\Expressive\ActiveRecord\Exception\ReadOnlyException;
-use Qubus\Expressive\OrmBuilder;
+use Qubus\Expressive\QueryBuilder;
 
 use function Qubus\Support\Helpers\is_null__;
 
@@ -79,7 +79,7 @@ class Row
         return json_encode($json);
     }
 
-    public function save(): Model|int|bool|OrmBuilder
+    public function save(): Model|int|bool|QueryBuilder
     {
         try {
             return $this->model->save();
@@ -90,7 +90,7 @@ class Row
         }
     }
 
-    public function delete(): bool|int|OrmBuilder|null
+    public function delete(): bool|int|QueryBuilder|null
     {
         try {
             return $this->model->delete();

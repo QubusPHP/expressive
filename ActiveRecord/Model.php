@@ -23,7 +23,7 @@ use Qubus\Expressive\ActiveRecord\Relations\BelongsToMany;
 use Qubus\Expressive\ActiveRecord\Relations\HasMany;
 use Qubus\Expressive\ActiveRecord\Relations\HasOne;
 use Qubus\Expressive\ActiveRecord\Relations\Relation;
-use Qubus\Expressive\OrmBuilder;
+use Qubus\Expressive\QueryBuilder;
 
 use function get_called_class;
 use function is_array;
@@ -38,7 +38,7 @@ class Model
     /**
      * Date format to use for database.
      */
-    public const DATE_FORMAT = 'Y-m-d H:i:s.u';
+    public const string DATE_FORMAT = 'Y-m-d H:i:s.u';
     /**
      * Database connection.
      */
@@ -46,7 +46,7 @@ class Model
     /**
      * Default orm query builder.
      */
-    protected ?OrmBuilder $queryBuilder = null;
+    protected ?QueryBuilder $queryBuilder = null;
     /**
      * Database table name.
      */
@@ -105,14 +105,15 @@ class Model
         return self::$connection = $connection;
     }
 
-    protected function ormQuery(): OrmBuilder
+    protected function ormQuery(): QueryBuilder
     {
-        return OrmBuilder::fromInstance(
+        $builder = QueryBuilder::fromInstance(
             connection: self::$connection,
-            table: $this->tableName,
             primaryKeyName: $this->primaryKey,
             tablePrefix: $this->tablePrefix
         );
+
+        return $builder->table($this->tableName);
     }
 
     protected function query(): static
@@ -201,7 +202,7 @@ class Model
     /**
      * @throws ReadOnlyException
      */
-    protected function update(array $data): bool|OrmBuilder|int
+    protected function update(array $data): bool|QueryBuilder|int
     {
         $this->isReadOnly(methodName: 'update');
 
@@ -222,7 +223,7 @@ class Model
     /**
      * @throws ReadOnlyException
      */
-    protected function save(): bool|int|OrmBuilder
+    protected function save(): bool|int|QueryBuilder
     {
         $this->isReadOnly(methodName: 'save');
 
@@ -258,7 +259,7 @@ class Model
     /**
      * @throws ReadOnlyException
      */
-    protected function delete(): bool|OrmBuilder|int
+    protected function delete(): bool|QueryBuilder|int
     {
         $this->isReadOnly(methodName: 'delete');
 
@@ -389,7 +390,8 @@ class Model
             $otherKey = strtolower(string: $related) . '_id';
         }
 
-        $pivotBuilder = OrmBuilder::fromInstance(connection: self::$connection, table: $pivotTable);
+        $pivotBuilder = QueryBuilder::fromInstance(connection: self::$connection);
+        $pivotBuilder = $pivotBuilder->table($pivotTable);
 
         return new BelongsToMany(
             parent: $this,

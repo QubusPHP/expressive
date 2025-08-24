@@ -15,6 +15,6 @@ namespace Qubus\Expressive;
 
 use RuntimeException;
 
-class OrmException extends RuntimeException
+class QueryBuilderException extends RuntimeException
 {
 }
