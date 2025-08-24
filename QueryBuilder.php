@@ -58,7 +58,7 @@ use function trim;
 
 use const COUNT_RECURSIVE;
 
-class OrmBuilder implements IteratorAggregate, Stringable
+class QueryBuilder implements IteratorAggregate, Stringable
 {
     use TapObjectAware;
 
@@ -187,7 +187,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * Set the table alias.
      *
      * @param string $alias
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function setTableAlias(string $alias): self
     {
@@ -207,7 +207,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * @param string $primaryKeyName The primary key, ie: id
      * @param string $foreignKeyName The foreign key as a pattern: %s_id,
      *                               where %s will be substituted with the table name
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function setStructure(
         string $primaryKeyName = 'id',
@@ -280,7 +280,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * @param bool $returnAsPdoStmt - true, it will return the PDOStatement
      *                                       false, it will return $this, which can be used for chaining
      *                                              or access the properties of the results
-     * @return OrmBuilder|PDOStatement
+     * @return QueryBuilder|PDOStatement
      */
     public function query(
         string $query,
@@ -394,7 +394,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * Return one row
      *
      * @param int|string|null $id Use to fetch by primary key.
-     * @return OrmBuilder|false
+     * @return QueryBuilder|false
      */
     public function findOne(int|string $id = null): self|bool
     {
@@ -430,7 +430,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * array of data fetched from the database).
      *
      * @param array $data
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function fromArray(array $data): self
     {
@@ -449,7 +449,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param mixed $columns The column(s) to select. Can be string or array of fields.
      * @param string|null $alias An alias to the column.
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function select(mixed $columns = '*', ?string $alias = null): self
     {
@@ -470,7 +470,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param mixed $condition condition possibly containing ? or :name
      * @param mixed $parameters array accepted by PDOStatement::execute or a scalar value.
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function where(mixed $condition, mixed $parameters = null): self
     {
@@ -520,7 +520,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
     /**
      * Create an AND operator in the where clause
      *
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function and__(): self
     {
@@ -537,7 +537,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
     /**
      * Create an OR operator in the where clause
      *
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function or__(): self
     {
@@ -554,7 +554,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
     /**
      * To group multiple where clauses together.
      *
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function wrap(): self
     {
@@ -578,7 +578,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * Where Primary key
      *
      * @param int|string $id
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function wherePK(int|string $id): self
     {
@@ -590,7 +590,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param string $columnName
      * @param mixed $value
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereNot(string $columnName, mixed $value): self
     {
@@ -602,7 +602,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param string $columnName
      * @param mixed $value
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereLike(string $columnName, mixed $value): self
     {
@@ -614,7 +614,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param string $columnName
      * @param mixed $value
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereNotLike(string $columnName, mixed $value): self
     {
@@ -626,7 +626,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param string $columnName
      * @param mixed $value
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereGt(string $columnName, mixed $value): self
     {
@@ -638,7 +638,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param string $columnName
      * @param mixed $value
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereGte(string $columnName, mixed $value): self
     {
@@ -650,7 +650,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param string $columnName
      * @param mixed $value
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereLt(string $columnName, mixed $value): self
     {
@@ -662,7 +662,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param string $columnName
      * @param mixed $value
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereLte(string $columnName, mixed $value): self
     {
@@ -674,7 +674,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param string $columnName
      * @param array $values
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereIn(string $columnName, array $values): self
     {
@@ -686,7 +686,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param string $columnName
      * @param array $values
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereNotIn(string $columnName, array $values): self
     {
@@ -699,7 +699,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * WHERE $columName IS NULL
      *
      * @param string $columnName
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereNull(string $columnName): self
     {
@@ -710,7 +710,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * WHERE $columName IS NOT NULL
      *
      * @param string $columnName
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function whereNotNull(string $columnName): self
     {
@@ -732,7 +732,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param  string   $columnName - The name of the colum or an expression
      * @param  string   $ordering   (DESC | ASC)
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function orderBy(string $columnName, string $ordering = ''): self
     {
@@ -745,7 +745,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * GROUP BY $columnName
      *
      * @param string $columnName
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function groupBy(string $columnName): self
     {
@@ -758,7 +758,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * LIMIT $limit
      *
      * @param int|null $limit
-     * @return OrmBuilder|int|null
+     * @return QueryBuilder|int|null
      */
     public function limit(?int $limit = null): self|int|null
     {
@@ -775,7 +775,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * OFFSET $offset
      *
      * @param int|null $offset
-     * @return OrmBuilder|int|null
+     * @return QueryBuilder|int|null
      */
     public function offset(?int $offset = null): self|int|null
     {
@@ -799,7 +799,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * @param string $constraint -> id = profile.user_id
      * @param string $tableAlias - The alias of the table name
      * @param string $joinOperator - LEFT | INNER | etc...
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function join(
         string $tableName,
@@ -822,11 +822,11 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * An alias to join by using a QueryBuilder instance.
      * The QueryBuilder instance may have select and where statement for the ON clause
      *
-     * @param OrmBuilder $query
+     * @param QueryBuilder $query
      * @param string $joinOperator
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
-    public function on(OrmBuilder $query, string $joinOperator = self::JOIN_LEFT): self
+    public function on(QueryBuilder $query, string $joinOperator = self::JOIN_LEFT): self
     {
         $this->joinOn = true;
         $constraint = str_replace(
@@ -1083,7 +1083,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
     /**
      * Detect if it's a single row instance and reset it to PK.
      *
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     protected function setSingleWhere(): self
     {
@@ -1097,7 +1097,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
     /**
      * Reset the where.
      *
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     protected function resetWhere(): self
     {
@@ -1130,7 +1130,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * If a single row is inserted, it will return its row instance
      *
      * @param  array    $data - data to populate
-     * @return OrmBuilder|int
+     * @return QueryBuilder|int
      */
     public function insert(array $data): self|int
     {
@@ -1184,7 +1184,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * Use the query builder to create the where clause.
      *
      * @param array|null $data the data to update
-     * @return OrmBuilder|int|false
+     * @return QueryBuilder|int|false
      */
     public function update(?array $data = null): self|int|false
     {
@@ -1249,7 +1249,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * Use the query builder to create the where clause.
      *
      * @param bool $deleteAll When there is no where condition, setting to true will delete all.
-     * @return OrmBuilder|int|false
+     * @return QueryBuilder|int|false
      */
     public function delete(bool $deleteAll = false): self|int|false
     {
@@ -1374,7 +1374,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      *
      * @param  mixed    $key
      * @param mixed|null $value
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function set(mixed $key, mixed $value = null): self
     {
@@ -1392,7 +1392,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
     /**
      * Save, a shortcut to update() or insert().
      *
-     * @return OrmBuilder|int|bool|static
+     * @return QueryBuilder|int|bool|static
      */
     public function save(): self|int|bool
     {
@@ -1583,7 +1583,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
     /**
      * Reset fields
      *
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function reset(): self
     {
@@ -1630,7 +1630,7 @@ class OrmBuilder implements IteratorAggregate, Stringable
      * and getSqlParameters to get the data
      *
      * @param bool $bool
-     * @return OrmBuilder
+     * @return QueryBuilder
      */
     public function debugSqlQuery(bool $bool = true): self
     {
