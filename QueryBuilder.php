@@ -82,6 +82,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
     public const string TAB = "\t";
     public const string EOL_TAB = "\n\t";
 
+    protected static ?QueryBuilder $instance = null;
     protected ?Connection $connection = null;
     protected ?string $tableName = null;
     protected string $tableToken = '';
@@ -143,10 +144,13 @@ class QueryBuilder implements IteratorAggregate, Stringable
         Connection $connection,
         string $primaryKeyName = 'id',
         ?string $tablePrefix = null
-    ): self {
-        return new self($connection)
-        ->setStructure(primaryKeyName: $primaryKeyName)
-        ->setTablePrefix(tablePrefix: $tablePrefix);
+    ): static {
+        if (static::$instance === null) {
+            static::$instance = new static($connection)
+                ->setStructure(primaryKeyName: $primaryKeyName)
+                ->setTablePrefix(tablePrefix: $tablePrefix);
+        }
+        return static::$instance;
     }
 
     /**
