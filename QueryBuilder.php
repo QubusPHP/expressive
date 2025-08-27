@@ -398,7 +398,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
      * @param int|string|null $id Use to fetch by primary key.
      * @return QueryBuilder|false
      */
-    public function findOne(int|string $id = null): self|bool
+    public function findOne(int|string|null $id = null): self|bool
     {
         if ($id) {
             $this->wherePK(id: $id);

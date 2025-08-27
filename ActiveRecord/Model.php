@@ -304,7 +304,7 @@ class Model
         return $this->primaryKey;
     }
 
-    public function getData($field = null)
+    public function getData(?string $field = null)
     {
         return !empty($field) ? $this->data[$field] : $this->data;
     }

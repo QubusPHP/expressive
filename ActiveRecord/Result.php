@@ -27,7 +27,7 @@ class Result implements Countable, IteratorAggregate
 
     protected array $rows;
 
-    public function __construct(Model $model, QueryBuilder $query = null)
+    public function __construct(Model $model, ?QueryBuilder $query = null)
     {
         $this->model = $model;
         $this->query = $query;
