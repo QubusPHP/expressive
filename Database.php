@@ -130,5 +130,5 @@ interface Database
      * @param Closure $callback transaction callback
      * @throws Exception
      */
-    public function transactional(Closure $callback, mixed $that = null, mixed $default = null);
+    public function transactional(Closure $callback, mixed $that = null, mixed $default = null): mixed;
 }

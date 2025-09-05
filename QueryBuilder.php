@@ -1282,7 +1282,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
-    public function transactional(Closure $callback, mixed $that = null, mixed $default = null)
+    public function transactional(Closure $callback, mixed $that = null, mixed $default = null): mixed
     {
         if (is_null__($that)) {
             $that = $this;
