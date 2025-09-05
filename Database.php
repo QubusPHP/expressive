@@ -20,7 +20,7 @@ interface Database
      * @param string $tableName Table name.
      * @param ?string $alias     The table alias name.
      */
-    public function table(string $tableName, ?string $alias = null): self;
+    public function table(string $tableName, ?string $alias = null): static;
 
     /**
      * @param string $primaryKeyName The primary key, ie: id
@@ -28,7 +28,7 @@ interface Database
      *                               where %s will be substituted with the table name
      * @return QueryBuilder
      */
-    public function setStructure(string $primaryKeyName = 'id', string $foreignKeyName = '%s_id'): self;
+    public function setStructure(string $primaryKeyName = 'id', string $foreignKeyName = '%s_id'): static;
 
     /**
      * To execute a raw query
@@ -62,7 +62,7 @@ interface Database
      * @param int|string|null $id Use to fetch by primary key.
      * @return QueryBuilder|false
      */
-    public function findOne(int|string|null $id = null): self|bool;
+    public function findOne(int|string|null $id = null): static|bool;
 
     /**
      * Create the select clause.
@@ -71,7 +71,7 @@ interface Database
      * @param string|null $alias An alias to the column.
      * @return QueryBuilder
      */
-    public function select(mixed $columns = '*', ?string $alias = null): self;
+    public function select(mixed $columns = '*', ?string $alias = null): static;
 
     /**
      * Add where condition, more calls appends with AND.
@@ -80,7 +80,7 @@ interface Database
      * @param mixed $parameters array accepted by PDOStatement::execute or a scalar value.
      * @return QueryBuilder
      */
-    public function where(mixed $condition, mixed $parameters = null): self;
+    public function where(mixed $condition, mixed $parameters = null): static;
 
     /**
      * The associated schema instance.
@@ -103,7 +103,7 @@ interface Database
      * @param  array    $data - data to populate
      * @return QueryBuilder|int
      */
-    public function insert(array $data): self|int;
+    public function insert(array $data): static|int;
 
     /**
      * Update entries
@@ -112,7 +112,7 @@ interface Database
      * @param array|null $data the data to update
      * @return QueryBuilder|int|false
      */
-    public function update(?array $data = null): self|int|false;
+    public function update(?array $data = null): static|int|false;
 
     /**
      * Delete rows.
@@ -122,7 +122,7 @@ interface Database
      * @param bool $deleteAll When there is no where condition, setting to true will delete all.
      * @return QueryBuilder|int|false
      */
-    public function delete(bool $deleteAll = false): self|int|false;
+    public function delete(bool $deleteAll = false): static|int|false;
 
     /**
      * Run transactional queries.
