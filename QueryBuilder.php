@@ -21,6 +21,7 @@ use IteratorAggregate;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Qubus\Dbal\Connection;
 use Qubus\Dbal\Connection\DbalPdo;
 use Qubus\Dbal\Schema;
 use Qubus\Inheritance\TapObjectAware;
@@ -82,7 +83,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     public const string EOL_TAB = "\n\t";
 
     protected static ?QueryBuilder $instance = null;
-    protected ?DbalPdo $connection = null {
+    protected DbalPdo|Connection|null $connection = null {
         get => $this->connection;
     }
     protected ?string $tableName = null;
@@ -124,14 +125,14 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * Constructor & set the table structure
      *
-     * @param DbalPdo $connection Database connection.
+     * @param DbalPdo|Connection $connection Database connection.
      * @param string|null $tablePrefix Prefix of database tables.
      * @param string $primaryKeyName Structure: table primary. If its an array, it must be the structure
      * @param string $foreignKeyName Structure: table foreignKeyName.
      *                                       It can be like %s_id where %s is the table name
      */
     public function __construct(
-        DbalPdo $connection,
+        DbalPdo|Connection $connection,
         ?string $tablePrefix = null,
         string $primaryKeyName = 'id',
         string $foreignKeyName = '%s_id'
@@ -142,7 +143,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     public static function fromInstance(
-        DbalPdo $connection,
+        DbalPdo|Connection $connection,
         string $primaryKeyName = 'id',
         ?string $tablePrefix = null
     ): static {

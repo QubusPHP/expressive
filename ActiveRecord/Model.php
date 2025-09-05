@@ -16,6 +16,7 @@ namespace Qubus\Expressive\ActiveRecord;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
+use Qubus\Dbal\Connection;
 use Qubus\Dbal\Connection\DbalPdo;
 use Qubus\Expressive\ActiveRecord\Exception\ReadOnlyException;
 use Qubus\Expressive\ActiveRecord\Relations\BelongsTo;
@@ -42,7 +43,7 @@ class Model
     /**
      * Database connection.
      */
-    protected static ?DbalPdo $connection = null;
+    protected static DbalPdo|Connection|null $connection = null;
     /**
      * Default orm query builder.
      */
@@ -100,7 +101,7 @@ class Model
         }
     }
 
-    public static function connection(DbalPdo $connection): DbalPdo
+    public static function connection(DbalPdo|Connection $connection): DbalPdo|Connection
     {
         return self::$connection = $connection;
     }
