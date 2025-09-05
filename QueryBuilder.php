@@ -17,12 +17,11 @@ use ArrayIterator;
 use Closure;
 use DateTime;
 use Exception;
-use InternalIterator;
 use IteratorAggregate;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Qubus\Dbal\Connection;
+use Qubus\Dbal\Connection\DbalPdo;
 use Qubus\Dbal\Schema;
 use Qubus\Inheritance\TapObjectAware;
 use SplFixedArray;
@@ -83,7 +82,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     public const string EOL_TAB = "\n\t";
 
     protected static ?QueryBuilder $instance = null;
-    protected ?Connection $connection = null;
+    protected ?DbalPdo $connection = null {
+        get => $this->connection;
+    }
     protected ?string $tableName = null;
     protected string $tableToken = '';
     protected string $tableAlias = '';
@@ -123,14 +124,14 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * Constructor & set the table structure
      *
-     * @param Connection $connection Database connection.
+     * @param DbalPdo $connection Database connection.
      * @param string|null $tablePrefix Prefix of database tables.
      * @param string $primaryKeyName Structure: table primary. If its an array, it must be the structure
      * @param string $foreignKeyName Structure: table foreignKeyName.
      *                                       It can be like %s_id where %s is the table name
      */
     public function __construct(
-        Connection $connection,
+        DbalPdo $connection,
         ?string $tablePrefix = null,
         string $primaryKeyName = 'id',
         string $foreignKeyName = '%s_id'
@@ -141,7 +142,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     public static function fromInstance(
-        Connection $connection,
+        DbalPdo $connection,
         string $primaryKeyName = 'id',
         ?string $tablePrefix = null
     ): static {
@@ -167,11 +168,6 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         $instance->setTableAlias(alias: $alias ?? $newTableName);
         $instance->reset();
         return $instance;
-    }
-
-    public function getConnection(): Connection
-    {
-        return $this->connection;
     }
 
     /**
