@@ -885,7 +885,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * The associated schema instance.
+     * {@inheritDoc}
      */
     public function schema(): Schema
     {
@@ -1080,10 +1080,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      * ----------------------------------------------------------------------------- */
 
     /**
-     * Retrieves the ID of the last record inserted.
-     *
-     * @param string|null $pk
-     * @return string|false
+     * {@inheritDoc}
      */
     public function lastInsertId(string|null $pk = null): string|false
     {
@@ -1094,12 +1091,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Insert new rows
-     * $data can be 2-dimensional to add a bulk insert
-     * If a single row is inserted, it will return its row instance
-     *
-     * @param  array    $data - data to populate
-     * @return QueryBuilder|int
+     * {@inheritDoc}
      */
     public function insert(array $data): self|int
     {
@@ -1149,11 +1141,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      * ----------------------------------------------------------------------------- */
 
     /**
-     * Update entries
-     * Use the query builder to create the where clause.
-     *
-     * @param array|null $data the data to update
-     * @return QueryBuilder|int|false
+     * {@inheritDoc}
      */
     public function update(?array $data = null): self|int|false
     {
@@ -1213,12 +1201,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      * ----------------------------------------------------------------------------- */
 
     /**
-     * Delete rows.
-     *
-     * Use the query builder to create the where clause.
-     *
-     * @param bool $deleteAll When there is no where condition, setting to true will delete all.
-     * @return QueryBuilder|int|false
+     * {@inheritDoc}
      */
     public function delete(bool $deleteAll = false): self|int|false
     {
@@ -1297,10 +1280,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Run transactional queries.
-     *
-     * @param Closure $callback transaction callback
-     * @throws Exception
+     * {@inheritDoc}
      */
     public function transactional(Closure $callback, mixed $that = null, mixed $default = null)
     {

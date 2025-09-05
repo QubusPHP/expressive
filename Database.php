@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Qubus\Expressive;
 
 use ArrayIterator;
+use Closure;
+use Exception;
 use InternalIterator;
 use PDOStatement;
+use Qubus\Dbal\Schema;
 use SplFixedArray;
 
 interface Database
@@ -78,4 +81,54 @@ interface Database
      * @return QueryBuilder
      */
     public function where(mixed $condition, mixed $parameters = null): self;
+
+    /**
+     * The associated schema instance.
+     */
+    public function schema(): Schema;
+
+    /**
+     * Retrieves the ID of the last record inserted.
+     *
+     * @param string|null $pk
+     * @return string|false
+     */
+    public function lastInsertId(string|null $pk = null): string|false;
+
+    /**
+     * Insert new rows
+     * $data can be 2-dimensional to add a bulk insert
+     * If a single row is inserted, it will return its row instance
+     *
+     * @param  array    $data - data to populate
+     * @return QueryBuilder|int
+     */
+    public function insert(array $data): self|int;
+
+    /**
+     * Update entries
+     * Use the query builder to create the where clause.
+     *
+     * @param array|null $data the data to update
+     * @return QueryBuilder|int|false
+     */
+    public function update(?array $data = null): self|int|false;
+
+    /**
+     * Delete rows.
+     *
+     * Use the query builder to create the where clause.
+     *
+     * @param bool $deleteAll When there is no where condition, setting to true will delete all.
+     * @return QueryBuilder|int|false
+     */
+    public function delete(bool $deleteAll = false): self|int|false;
+
+    /**
+     * Run transactional queries.
+     *
+     * @param Closure $callback transaction callback
+     * @throws Exception
+     */
+    public function transactional(Closure $callback, mixed $that = null, mixed $default = null);
 }
