@@ -58,7 +58,7 @@ use function trim;
 
 use const COUNT_RECURSIVE;
 
-class QueryBuilder implements IteratorAggregate, Stringable
+class QueryBuilder implements IteratorAggregate, Stringable, Database
 {
     use TapObjectAware;
 
@@ -154,10 +154,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
     }
 
     /**
-     * Define the working table and create a new instance
-     *
-     * @param string $tableName Table name.
-     * @param ?string $alias     The table alias name.
+     * {@inheritDoc}
      */
     public function table(string $tableName, ?string $alias = null): self
     {
@@ -206,10 +203,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
     }
 
     /**
-     * @param string $primaryKeyName The primary key, ie: id
-     * @param string $foreignKeyName The foreign key as a pattern: %s_id,
-     *                               where %s will be substituted with the table name
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
     public function setStructure(
         string $primaryKeyName = 'id',
@@ -275,14 +269,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
     }
 
     /**
-     * To execute a raw query
-     *
-     * @param string $query
-     * @param array $parameters
-     * @param bool $returnAsPdoStmt - true, it will return the PDOStatement
-     *                                       false, it will return $this, which can be used for chaining
-     *                                              or access the properties of the results
-     * @return QueryBuilder|PDOStatement
+     * {@inheritDoc}
      */
     public function query(
         string $query,
@@ -319,16 +306,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
      * ----------------------------------------------------------------------------- */
 
     /**
-     * To find all rows and create their instances
-     * Use the query builder to build the where clause or $this->query with select
-     * If a callback function is provided, the 1st arg must accept the rows results
-     *
-     * $this->find(function($rows){
-     *   // do more stuff here...
-     * });
-     *
-     * @param callable|null $callback Run a function on the returned rows
-     * @return bool|SplFixedArray|string|ArrayIterator|InternalIterator|array
+     * {@inheritDoc}
      */
     public function find(?callable $callback = null): mixed
     {
@@ -393,10 +371,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
     }
 
     /**
-     * Return one row
-     *
-     * @param int|string|null $id Use to fetch by primary key.
-     * @return QueryBuilder|false
+     * {@inheritDoc}
      */
     public function findOne(int|string|null $id = null): self|bool
     {
@@ -447,11 +422,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
       Fluent Query Builder
      * ----------------------------------------------------------------------------- */
     /**
-     * Create the select clause.
-     *
-     * @param mixed $columns The column(s) to select. Can be string or array of fields.
-     * @param string|null $alias An alias to the column.
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
     public function select(mixed $columns = '*', ?string $alias = null): self
     {
@@ -468,11 +439,7 @@ class QueryBuilder implements IteratorAggregate, Stringable
     }
 
     /**
-     * Add where condition, more calls appends with AND.
-     *
-     * @param mixed $condition condition possibly containing ? or :name
-     * @param mixed $parameters array accepted by PDOStatement::execute or a scalar value.
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
     public function where(mixed $condition, mixed $parameters = null): self
     {
