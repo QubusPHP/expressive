@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Qubus\Expressive\DataMapper;
 
+use Opis\Database\Connection;
 use PDO;
 use ReflectionClass;
 use ReflectionException;
@@ -36,7 +37,7 @@ class PdoDataMapper implements DataMapper
      * @throws ReflectionException
      * @throws DataMapperException
      */
-    public function __construct(public readonly PDO $pdo, string $entity)
+    public function __construct(public readonly Connection $connection, string $entity)
     {
         $this->entity = $entity;
 
@@ -66,7 +67,7 @@ class PdoDataMapper implements DataMapper
 
     public function getPdo(): PDO
     {
-        return $this->pdo;
+        return $this->connection->getPDO();
     }
 
     public function findAll(string $orderBy = '', array $options = []): array
@@ -75,7 +76,7 @@ class PdoDataMapper implements DataMapper
         $sql .= $this->buildOrderByString($orderBy, $options['direction'] ?? 'ASC');
         $sql .= $this->buildLimitOffsetString($options['limit'] ?? 10, $options['offset'] ?? 0);
 
-        $rows = $this->pdo->query($sql)->fetchAll(mode: PDO::FETCH_ASSOC);
+        $rows = $this->connection->getPDO()->query($sql)->fetchAll(mode: PDO::FETCH_ASSOC);
 
         $objects = [];
         foreach ($rows as $row) {
@@ -94,7 +95,7 @@ class PdoDataMapper implements DataMapper
         $sql .= $this->buildOrderByString(orderBy: $orderBy, direction: $options['direction'] ?? 'ASC');
         $sql .= $this->buildLimitOffsetString(limit: $options['limit'] ?? 10, offset: $options['offset'] ?? 0);
 
-        $stmt = $this->pdo->prepare(query: $sql);
+        $stmt = $this->connection->getPDO()->prepare(query: $sql);
         $stmt->execute(params: [':' . $column => $value]);
         $rows = $stmt->fetchAll(mode: PDO::FETCH_ASSOC);
 
@@ -113,7 +114,7 @@ class PdoDataMapper implements DataMapper
         $sql .= $this->columns['id'];
         $sql .= ' = :id';
 
-        $stmt = $this->pdo->prepare(query: $sql);
+        $stmt = $this->connection->getPDO()->prepare(query: $sql);
         $stmt->execute(params: [':id' => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -124,7 +125,7 @@ class PdoDataMapper implements DataMapper
     {
         $sql = $this->buildInsertString();
 
-        $stmt = $this->pdo->prepare(query: $sql);
+        $stmt = $this->connection->getPDO()->prepare(query: $sql);
         foreach (array_keys($this->columns) as $column) {
             if ($column === 'id') {
                 continue;
@@ -133,7 +134,7 @@ class PdoDataMapper implements DataMapper
         }
         $stmt->execute();
 
-        $entity->id = $this->pdo->lastInsertId();
+        $entity->id = $this->connection->getPDO()->lastInsertId();
 
         return $entity;
     }
@@ -142,7 +143,7 @@ class PdoDataMapper implements DataMapper
     {
         $sql = $this->buildUpdateString();
 
-        $stmt = $this->pdo->prepare(query: $sql);
+        $stmt = $this->connection->getPDO()->prepare(query: $sql);
         foreach (array_keys($this->columns) as $column) {
             $stmt->bindValue(param: ':' . $column, value: $entity->$column);
         }
@@ -155,7 +156,7 @@ class PdoDataMapper implements DataMapper
     {
         $sql = $this->buildDeleteString();
 
-        $stmt = $this->pdo->prepare(query: $sql);
+        $stmt = $this->connection->getPDO()->prepare(query: $sql);
         $stmt->execute([':id' => $id]);
     }
 

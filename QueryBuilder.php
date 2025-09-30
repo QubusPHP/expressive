@@ -278,7 +278,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         if ($this->debugSqlQuery) {
             return $this;
         } else {
-            $this->pdoStmt = $this->connection->getPdo()->prepare(query: $query);
+            $this->pdoStmt = $this->connection->getPDO()->prepare(query: $query);
             $this->pdoExecuted = $this->pdoStmt->execute(params: $parameters);
             if ($returnAsPdoStmt) {
                 return $this->pdoStmt;
@@ -1080,10 +1080,10 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function lastInsertId(string|null $pk = null): string|false
     {
-        if ($this->connection->getPdo()->getAttribute(attribute: PDO::ATTR_DRIVER_NAME) === 'pgsql') {
+        if ($this->connection->getPDO()->getAttribute(attribute: PDO::ATTR_DRIVER_NAME) === 'pgsql') {
             $pk = sprintf('%s_%s_seq', $this->getTableName(), $pk);
         }
-        return $this->connection->getPdo()->lastInsertId(name: $pk);
+        return $this->connection->getPDO()->lastInsertId(name: $pk);
     }
 
     /**
@@ -1242,7 +1242,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function beginTransaction(): bool
     {
-        return $this->connection->getPdo()->beginTransaction();
+        return $this->connection->getPDO()->beginTransaction();
     }
 
     /**
@@ -1252,7 +1252,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function inTransaction(): bool
     {
-        return $this->connection->getPdo()->inTransaction();
+        return $this->connection->getPDO()->inTransaction();
     }
 
     /**
@@ -1262,7 +1262,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function commit(): bool
     {
-        return $this->connection->getPdo()->commit();
+        return $this->connection->getPDO()->commit();
     }
 
     /**
@@ -1272,7 +1272,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function rollBack(): bool
     {
-        return $this->connection->getPdo()->rollBack();
+        return $this->connection->getPDO()->rollBack();
     }
 
     /**
