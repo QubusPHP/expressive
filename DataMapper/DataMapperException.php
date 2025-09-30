@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Qubus\Expressive\DataMapper;
 
-use Qubus\Dbal\DbalException;
+use Exception;
 
-final class DataMapperException extends DbalException
+final class DataMapperException extends Exception
 {
 }

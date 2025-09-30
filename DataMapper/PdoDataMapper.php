@@ -34,6 +34,7 @@ class PdoDataMapper implements DataMapper
 
     /**
      * @throws ReflectionException
+     * @throws DataMapperException
      */
     public function __construct(public readonly PDO $pdo, string $entity)
     {
@@ -256,7 +257,7 @@ class PdoDataMapper implements DataMapper
     {
         $object = new $this->entity();
         foreach ($this->columns as $objectPropertyName => $dbFieldName) {
-            $object->$objectPropertyName = $row[$dbFieldName];
+            $object->{$objectPropertyName} = $row[$dbFieldName];
         }
 
         return $object;
