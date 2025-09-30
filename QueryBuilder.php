@@ -18,12 +18,11 @@ use Closure;
 use DateTime;
 use Exception;
 use IteratorAggregate;
+use Opis\Database\Connection;
+use Opis\Database\Schema;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Qubus\Dbal\Connection;
-use Qubus\Dbal\Connection\DbalPdo;
-use Qubus\Dbal\Schema;
 use Qubus\Inheritance\TapObjectAware;
 use SplFixedArray;
 use Stringable;
@@ -83,7 +82,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     public const string EOL_TAB = "\n\t";
 
     protected static ?QueryBuilder $instance = null;
-    protected DbalPdo|Connection|null $connection = null {
+    protected Connection|null $connection = null {
         get => $this->connection;
     }
     protected ?string $tableName = null;
@@ -125,14 +124,14 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * Constructor & set the table structure
      *
-     * @param DbalPdo|Connection $connection Database connection.
+     * @param Connection $connection Database connection.
      * @param string|null $tablePrefix Prefix of database tables.
      * @param string $primaryKeyName Structure: table primary. If its an array, it must be the structure
      * @param string $foreignKeyName Structure: table foreignKeyName.
      *                                       It can be like %s_id where %s is the table name
      */
     public function __construct(
-        DbalPdo|Connection $connection,
+        Connection $connection,
         ?string $tablePrefix = null,
         string $primaryKeyName = 'id',
         string $foreignKeyName = '%s_id'
@@ -143,7 +142,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     public static function fromInstance(
-        DbalPdo|Connection $connection,
+        Connection $connection,
         string $primaryKeyName = 'id',
         ?string $tablePrefix = null
     ): static {

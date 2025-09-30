@@ -8,8 +8,8 @@ use ArrayIterator;
 use Closure;
 use Exception;
 use InternalIterator;
+use Opis\Database\Schema;
 use PDOStatement;
-use Qubus\Dbal\Schema;
 use SplFixedArray;
 
 interface Database
