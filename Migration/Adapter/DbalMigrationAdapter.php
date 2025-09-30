@@ -7,13 +7,13 @@ namespace Qubus\Expressive\Migration\Adapter;
 use Exception;
 use Opis\Database\Connection;
 use Opis\Database\Schema\CreateTable;
-use Qubus\Expressive\Migration\Adapter\Traits\OpisListTablesAware;
+use Qubus\Expressive\Migration\Adapter\Traits\DbalListTablesAware;
 use Qubus\Expressive\Migration\Migration;
 use Qubus\Support\DateTime\QubusDateTimeImmutable;
 
-class OpisMigrationAdapter implements MigrationAdapter
+class DbalMigrationAdapter implements MigrationAdapter
 {
-    use OpisListTablesAware;
+    use DbalListTablesAware;
 
     public function __construct(protected Connection $connection, protected string $tableName)
     {

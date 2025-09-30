@@ -11,7 +11,7 @@ use Qubus\Exception\Exception;
 use function array_map;
 use function reset;
 
-trait OpisListTablesAware
+trait DbalListTablesAware
 {
     protected function database(): Database
     {
