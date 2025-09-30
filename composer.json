@@ -13,14 +13,14 @@
     "require": {
         "php": ">=8.4",
         "ext-pdo": "*",
-        "opis/database": "^4.3",
-        "qubus/config": "^3",
+        "opis/database": "^4",
+        "qubus/config": "^4",
         "qubus/event-dispatcher": "^4",
-        "qubus/inheritance": "^3.0",
-        "qubus/support": "^4.0",
-        "qubus/valueobjects": "^3.0",
-        "symfony/console": "^7.3",
-        "symfony/options-resolver": "^7.3"
+        "qubus/inheritance": "^4",
+        "qubus/support": "^4",
+        "qubus/valueobjects": "^4",
+        "symfony/console": "^7",
+        "symfony/options-resolver": "^7"
     },
     "require-dev": {
         "qubus/qubus-coding-standard": "^2"
