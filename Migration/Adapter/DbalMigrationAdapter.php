@@ -32,9 +32,8 @@ class DbalMigrationAdapter implements MigrationAdapter
      */
     public function fetchAll(): array
     {
-        $tableName = $this->connection->getPDO()->quote(string: $this->tableName);
         $db = $this->database();
-        $sql = $db->from(tables: $tableName)->orderBy(columns: 'version')->select(['version'])->fetchAssoc();
+        $sql = $db->from(tables: $this->tableName)->orderBy(columns: 'version')->select(['version'])->fetchAssoc();
         $all = $sql->all();
 
         return array_map(fn ($v) => $v['version'], $all);
