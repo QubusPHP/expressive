@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace Qubus\Expressive\Migration\Adapter;
 
 use Exception;
-use Opis\Database\Connection;
-use Opis\Database\Schema\CreateTable;
-use Qubus\Expressive\Migration\Adapter\Traits\DbalListTablesAware;
+use Qubus\Dbal\Connection;
+use Qubus\Dbal\Schema\CreateTable;
 use Qubus\Expressive\Migration\Migration;
 use Qubus\Support\DateTime\QubusDateTimeImmutable;
 
 class DbalMigrationAdapter implements MigrationAdapter
 {
-    use DbalListTablesAware;
-
     public function __construct(protected Connection $connection, protected string $tableName)
     {
     }
@@ -32,8 +29,8 @@ class DbalMigrationAdapter implements MigrationAdapter
      */
     public function fetchAll(): array
     {
-        $db = $this->database();
-        $sql = $db->from(tables: $this->tableName)->orderBy(columns: 'version')->select(['version'])->fetchAssoc();
+        $tableName = $this->connection->quoteIdentifier($this->tableName);
+        $sql = $this->connection->query(sql: "SELECT version FROM $tableName ORDER BY version ASC")->fetchAssoc();
         $all = $sql->all();
 
         return array_map(fn ($v) => $v['version'], $all);
@@ -47,12 +44,12 @@ class DbalMigrationAdapter implements MigrationAdapter
      */
     public function up(Migration $migration): MigrationAdapter
     {
-        $this->database()
+        $this->connection->queryBuilder()
+            ->table($this->tableName)
             ->insert([
                 'version' => $migration->getVersion(),
                 'recorded_on' => new QubusDateTimeImmutable(time: 'now')->format(format: 'Y-m-d h:i:s')
-            ])
-            ->into($this->tableName);
+            ]);
 
         return $this;
     }
@@ -65,9 +62,9 @@ class DbalMigrationAdapter implements MigrationAdapter
      */
     public function down(Migration $migration): MigrationAdapter
     {
-        $this->database()
-            ->from(tables: $this->tableName)
-            ->where(column: 'version')->eq($migration->getVersion())
+        $this->connection->queryBuilder()
+            ->table($this->tableName)
+            ->where(condition: 'version', parameters: $migration->getVersion())
             ->delete();
 
         return $this;
@@ -81,7 +78,7 @@ class DbalMigrationAdapter implements MigrationAdapter
      */
     public function hasSchema(): bool
     {
-        $tables = $this->listTables();
+        $tables = $this->connection->listTables();
 
         if (in_array(needle: $this->tableName, haystack: $tables)) {
             return true;

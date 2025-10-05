@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Qubus\Expressive\Migration;
 
 use ArrayAccess;
-use Opis\Database\Schema;
+use Qubus\Dbal\Schema;
 use Qubus\Expressive\Migration\Adapter\MigrationAdapter;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;

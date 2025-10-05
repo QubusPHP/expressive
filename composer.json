@@ -13,8 +13,8 @@
     "require": {
         "php": ">=8.4",
         "ext-pdo": "*",
-        "opis/database": "^4",
         "qubus/config": "^4",
+        "qubus/dbal": "4.x",
         "qubus/event-dispatcher": "^4",
         "qubus/inheritance": "^4",
         "qubus/support": "^4",
@@ -40,6 +40,7 @@
         "cs-check": "phpcs",
         "cs-fix": "phpcbf"
     },
+    "minimum-stability": "dev",
     "config": {
         "optimize-autoloader": true,
         "sort-packages": true,
