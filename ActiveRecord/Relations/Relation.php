@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Qubus\Expressive
- *
- * @link       https://github.com/QubusPHP/expressive
- * @copyright  2022
- * @author     Joshua Parker <joshua@joshuaparker.dev>
- * @license    https://opensource.org/licenses/mit-license.php MIT License
- */
-
 declare(strict_types=1);
 
 namespace Qubus\Expressive\ActiveRecord\Relations;
@@ -23,14 +14,14 @@ use Qubus\Expressive\ActiveRecord\Row;
 
 abstract class Relation implements Countable, IteratorAggregate
 {
-    protected Model $parent;
-    protected Model $related;
+    protected ?Model $parent = null;
+    protected ?Model $related = null;
 
-    protected mixed $join;
+    protected mixed $join = null;
 
     protected bool $eagerLoading = false;
-    protected array $eagerKeys;
-    protected mixed $eagerResults;
+    protected array $eagerKeys = [];
+    protected mixed $eagerResults = null;
 
     public function __construct(Model $parent, Model $related)
     {
@@ -38,13 +29,13 @@ abstract class Relation implements Countable, IteratorAggregate
         $this->related = $related;
     }
 
-    abstract public function getResults();
+    abstract public function getResults(): mixed;
 
-    abstract public function setJoin();
+    abstract public function setJoin(): mixed;
 
-    abstract public function match(Model $parent);
+    abstract public function match(Model $parent): mixed;
 
-    public function eagerLoad($parentRows, $relatedKeys, $relation)
+    public function eagerLoad($parentRows, $relatedKeys, $relation): mixed
     {
         $this->eagerLoading = true;
         $this->eagerKeys = (array) $relatedKeys;
@@ -58,7 +49,7 @@ abstract class Relation implements Countable, IteratorAggregate
         return $parentRows;
     }
 
-    public function relate(Model $parent)
+    public function relate(Model $parent): mixed
     {
         if (empty($this->eagerResults)) {
             if (empty($this->join)) {
@@ -88,7 +79,7 @@ abstract class Relation implements Countable, IteratorAggregate
     }
 
     // Chains with Active Record method if available
-    public function __call(mixed $name, mixed $param)
+    public function __call(mixed $name, mixed $param): mixed
     {
         if (is_callable(value: [$this->related, $name])) {
             if (empty($this->join)) {
@@ -109,8 +100,8 @@ abstract class Relation implements Countable, IteratorAggregate
             } elseif ($name === 'get') {
                 return new EmptyIterator();
             }
-
-            return $this;
         }
+
+        return $this;
     }
 }

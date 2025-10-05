@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Qubus\Expressive
- *
- * @link       https://github.com/QubusPHP/expressive
- * @copyright  2022
- * @author     Joshua Parker <joshua@joshuaparker.dev>
- * @license    https://opensource.org/licenses/mit-license.php MIT License
- */
-
 declare(strict_types=1);
 
 namespace Qubus\Expressive\ActiveRecord\Relations;
@@ -26,28 +17,22 @@ class HasOne extends Relation
         $this->foreignKey = $foreignKey;
     }
 
-    public function setJoin()
+    public function setJoin(): mixed
     {
-        if ($this->eagerLoading) {
-            return $this->related->whereIn($this->foreignKey, $this->eagerKeys);
-        } else {
-            return $this->related->where(
-                $this->foreignKey,
-                $this->parent->getData(field: $this->parent->getPrimaryKey())
-            );
-        }
+        return $this->eagerLoading
+            ? $this->related->whereIn($this->foreignKey, $this->eagerKeys)
+            : $this->related->where($this->foreignKey, $this->parent->getData(field: $this->parent->getPrimaryKey()));
     }
 
-    public function match(Model $parent)
+    public function match(Model $parent): mixed
     {
-        foreach ($this->eagerResults as $row) {
-            if ($row->{$this->foreignKey} == $parent->getData(field: $parent->getPrimaryKey())) {
-                return $row;
-            }
-        }
+        return array_find(
+                $this->eagerResults,
+                fn($row) => $row->{$this->foreignKey} === $parent->getData(field: $parent->getPrimaryKey())
+        );
     }
 
-    public function getResults()
+    public function getResults(): mixed
     {
         if (empty($this->join)) {
             $this->join = $this->setJoin();

@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Qubus\Expressive
- *
- * @link       https://github.com/QubusPHP/expressive
- * @copyright  2022
- * @author     Joshua Parker <joshua@joshuaparker.dev>
- * @license    https://opensource.org/licenses/mit-license.php MIT License
- */
-
 declare(strict_types=1);
 
 namespace Qubus\Expressive\ActiveRecord;
@@ -16,17 +7,19 @@ namespace Qubus\Expressive\ActiveRecord;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
-use Opis\Database\Connection;
 use Qubus\Expressive\ActiveRecord\Exception\ReadOnlyException;
 use Qubus\Expressive\ActiveRecord\Relations\BelongsTo;
 use Qubus\Expressive\ActiveRecord\Relations\BelongsToMany;
 use Qubus\Expressive\ActiveRecord\Relations\HasMany;
 use Qubus\Expressive\ActiveRecord\Relations\HasOne;
 use Qubus\Expressive\ActiveRecord\Relations\Relation;
+use Qubus\Expressive\Connection;
+use Qubus\Expressive\Database;
 use Qubus\Expressive\QueryBuilder;
 
 use function get_called_class;
 use function is_array;
+use function method_exists;
 use function Qubus\Support\Helpers\camel_case;
 use function Qubus\Support\Helpers\is_null__;
 use function Qubus\Support\Helpers\studly_case;
@@ -42,7 +35,7 @@ class Model
     /**
      * Database connection.
      */
-    protected static Connection|null $connection = null;
+    protected static ?Connection $connection = null;
     /**
      * Default orm query builder.
      */
@@ -105,7 +98,7 @@ class Model
         return self::$connection = $connection;
     }
 
-    protected function ormQuery(): QueryBuilder
+    protected function dbalQuery(): QueryBuilder
     {
         $builder = QueryBuilder::fromInstance(
             connection: self::$connection,
@@ -118,14 +111,14 @@ class Model
 
     protected function query(): static
     {
-        $this->ormQuery();
+        $this->dbalQuery();
 
         return $this;
     }
 
     protected function all(string|array $columns = '*'): Result
     {
-        $builder = $this->ormQuery()->select(columns: $columns);
+        $builder = $this->dbalQuery()->select(columns: $columns);
 
         $result = new Result(model: $this, query: $builder);
         return $result->rows();
@@ -145,7 +138,7 @@ class Model
 
     protected function first(string|array $columns = '*'): ?Row
     {
-        $builder = $this->ormQuery()->select(columns: $columns)->findOne();
+        $builder = $this->dbalQuery()->select(columns: $columns)->findOne();
 
         $result = new Result(model: $this, query: $builder);
         return $result->first();
@@ -162,12 +155,12 @@ class Model
         }
 
         if (is_array(value: $id)) {
-            $builder = $this->ormQuery()->whereIn(
+            $builder = $this->dbalQuery()->whereIn(
                 columnName: $this->primaryKey,
                 values: $id
             );
         } else {
-            $builder = $this->ormQuery()->where(
+            $builder = $this->dbalQuery()->where(
                 condition: $this->primaryKey . ' = ?',
                 parameters: $id
             )->findOne();
@@ -177,7 +170,7 @@ class Model
         return is_array(value: $id) ? $result->rows() : $result->first();
     }
 
-    protected function pluck($field)
+    protected function pluck($field): mixed
     {
         $row = $this->first(columns: [$field]);
 
@@ -187,7 +180,7 @@ class Model
     /**
      * @throws ReadOnlyException
      */
-    protected static function create(array $data): bool|static
+    protected static function create(array $data): bool|static|Database|QueryBuilder|int
     {
         if (empty($data)) {
             return false;
@@ -202,7 +195,7 @@ class Model
     /**
      * @throws ReadOnlyException
      */
-    protected function update(array $data): bool|QueryBuilder|int
+    protected function update(array $data): bool|Database|QueryBuilder|int
     {
         $this->isReadOnly(methodName: 'update');
 
@@ -214,7 +207,7 @@ class Model
 
             [$data, $where] = $param;
 
-            return $this->ormQuery()->update(data: $data)->where(condition: $where);
+            return $this->dbalQuery()->update(data: $data)->where(condition: $where);
         } else {
             return $this->queryBuilder->update(data: $data);
         }
@@ -223,7 +216,7 @@ class Model
     /**
      * @throws ReadOnlyException
      */
-    protected function save(): bool|int|QueryBuilder
+    protected function save(): bool|int|Database|QueryBuilder
     {
         $this->isReadOnly(methodName: 'save');
 
@@ -237,7 +230,7 @@ class Model
                 return false;
             }
 
-            $return = $this->ormQuery()->insert(data: $this->data);
+            $return = $this->dbalQuery()->insert(data: $this->data);
 
             //if ($return !== false) {
             if ($return->rowCount() > 0) {
@@ -252,14 +245,14 @@ class Model
         } else {
             $where = [$this->primaryKey => $this->getData(field: $this->primaryKey)];
 
-            return $this->ormQuery()->update(data: $this->getData())->where(condition: $where);
+            return $this->dbalQuery()->update(data: $this->getData())->where(condition: $where);
         }
     }
 
     /**
      * @throws ReadOnlyException
      */
-    protected function delete(): bool|QueryBuilder|int
+    protected function delete(): bool|Database|QueryBuilder|int
     {
         $this->isReadOnly(methodName: 'delete');
 
@@ -284,9 +277,9 @@ class Model
             }
 
             if (count($where) <= 1) {
-                $builder = $this->ormQuery()->where(condition: $this->primaryKey, parameters: reset($where));
+                $builder = $this->dbalQuery()->where(condition: $this->primaryKey, parameters: reset($where));
             } else {
-                $builder = $this->ormQuery()->whereIn(columnName: $this->primaryKey, values: $where);
+                $builder = $this->dbalQuery()->whereIn(columnName: $this->primaryKey, values: $where);
             }
 
             return $builder->delete();
@@ -304,7 +297,7 @@ class Model
         return $this->primaryKey;
     }
 
-    public function getData(?string $field = null)
+    public function getData(?string $field = null): mixed
     {
         return !empty($field) ? $this->data[$field] : $this->data;
     }
@@ -404,10 +397,10 @@ class Model
 
     public function setRelation($name, Relation $relation): void
     {
-        $this->relations[ $name ] = $relation->relate(parent: $this);
+        $this->relations[$name] = $relation->relate(parent: $this);
     }
 
-    public function getRelation($name)
+    public function getRelation($name): mixed
     {
         return $this->relations[$name] ?? null;
     }
@@ -426,36 +419,36 @@ class Model
     // Aggregate Methods
     // ======================================
 
-    protected function aggregates(mixed $function, mixed $field)
+    protected function aggregates(mixed $function, mixed $field): mixed
     {
         if (empty($this->queryBuilder)) {
-            $this->queryBuilder = $this->ormQuery();
+            $this->queryBuilder = $this->dbalQuery();
         }
 
         return $this->queryBuilder->{$function}($field);
     }
 
-    protected function max(mixed $field)
+    protected function max(mixed $field): float|int
     {
         return $this->aggregates(function: __FUNCTION__, field: $field);
     }
 
-    protected function min(mixed $field)
+    protected function min(mixed $field): float|int
     {
         return $this->aggregates(function: __FUNCTION__, field: $field);
     }
 
-    protected function avg(mixed $field): float
+    protected function avg(mixed $field): float|int
     {
         return round($this->aggregates(function: __FUNCTION__, field: $field), 2);
     }
 
-    protected function sum(mixed $field)
+    protected function sum(mixed $field): float|int
     {
         return $this->aggregates(function: __FUNCTION__, field: $field);
     }
 
-    protected function count(mixed $field = null)
+    protected function count(mixed $field = null): float|int
     {
         if (empty($field)) {
             $field = $this->getPrimaryKey();
@@ -535,7 +528,7 @@ class Model
      * ======================================
      */
 
-    public function __call(mixed $name, mixed $arguments)
+    public function __call(mixed $name, mixed $arguments): mixed
     {
         // Check if the method is available in this model
         if (method_exists(object_or_class: $this, method: $name)) {
@@ -553,7 +546,7 @@ class Model
         }
 
         if (is_null__(var: $this->queryBuilder)) {
-            $this->queryBuilder = $this->ormQuery();
+            $this->queryBuilder = $this->dbalQuery();
         }
 
         if (is_callable(value: [$this->queryBuilder, $name])) {
@@ -562,16 +555,19 @@ class Model
         }
 
         //return show_error('Unknown function '.$name, 500);
+        return !method_exists(object_or_class: $this, method: $name)
+        ? $this->queryBuilder->{$name}(...$arguments)
+        : $this;
     }
 
-    public static function __callStatic(mixed $name, mixed $arguments)
+    public static function __callStatic(mixed $name, mixed $arguments): mixed
     {
         $model = get_called_class();
 
         return call_user_func_array(callback: [new $model(), $name], args: $arguments);
     }
 
-    public function __get(mixed $field)
+    public function __get(mixed $field): mixed
     {
         if (!isset($this->data[$field])) {
             return null;
@@ -584,7 +580,7 @@ class Model
         ? call_user_func([$this, $accessor], $value, $this) : $value;
     }
 
-    public function __set(mixed $field, mixed $value)
+    public function __set(mixed $field, mixed $value): void
     {
         $mutator = 'setAttr' . camel_case(str: $field);
 
@@ -595,7 +591,7 @@ class Model
         $this->setData(field: $field, value: $value);
     }
 
-    public function __isset(mixed $field)
+    public function __isset(mixed $field): bool
     {
         return !empty($this->data[ $field ]);
     }

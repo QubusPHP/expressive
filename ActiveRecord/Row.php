@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Qubus\Expressive
- *
- * @link       https://github.com/QubusPHP/expressive
- * @copyright  2022
- * @author     Joshua Parker <joshua@joshuaparker.dev>
- * @license    https://opensource.org/licenses/mit-license.php MIT License
- */
-
 declare(strict_types=1);
 
 namespace Qubus\Expressive\ActiveRecord;
@@ -16,6 +7,8 @@ namespace Qubus\Expressive\ActiveRecord;
 use Qubus\Expressive\ActiveRecord\Exception\ReadOnlyException;
 use Qubus\Expressive\QueryBuilder;
 
+use function call_user_func_array;
+use function method_exists;
 use function Qubus\Support\Helpers\is_null__;
 
 class Row
@@ -31,7 +24,7 @@ class Row
     }
 
     // Getter
-    public function __get($field)
+    public function __get($field): mixed
     {
         // Are we trying to get a related model?
         if (method_exists(object_or_class: $this->model, method: $field)) {
@@ -51,21 +44,21 @@ class Row
     }
 
     // Setter
-    public function __set($field, $value)
+    public function __set($field, $value): void
     {
         $this->model->{$field} = $value;
     }
 
-    public function __isset($field)
+    public function __isset($field): bool
     {
         return !empty($this->model->{$field});
     }
 
-    public function __call($name, $arguments)
+    public function __call($name, $arguments): mixed
     {
-        if (method_exists(object_or_class: $this->model, method: $name)) {
-            return call_user_func_array(callback: [$this->model, $name], args: $arguments);
-        }
+        return method_exists(object_or_class: $this->model, method: $name)
+        ? call_user_func_array(callback: [$this->model, $name], args: $arguments)
+        : $this->model;
     }
 
     public function __toString(): string

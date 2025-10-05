@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Qubus\Expressive
- *
- * @link       https://github.com/QubusPHP/expressive
- * @copyright  2022
- * @author     Joshua Parker <joshua@joshuaparker.dev>
- * @license    https://opensource.org/licenses/mit-license.php MIT License
- */
-
 declare(strict_types=1);
 
 namespace Qubus\Expressive\ActiveRecord\Relations;
@@ -17,8 +8,8 @@ use Qubus\Expressive\ActiveRecord\Model;
 
 class BelongsToMany extends Relation
 {
-    protected string $pivotBuilder;
-    protected mixed $pivotResult;
+    protected ?string $pivotBuilder = null;
+    protected mixed $pivotResult = null;
 
     protected string|int|null $foreignKey = null;
     protected string|int|null $otherKey = null;
@@ -58,9 +49,9 @@ class BelongsToMany extends Relation
 
         $otherId = array_unique(array: $otherId);
 
-        if (!empty($otherId)) {
-            return $this->related->whereIn($this->related->getPrimaryKey(), $otherId);
-        }
+        return !empty($otherId)
+            ? $this->related->whereIn($this->related->getPrimaryKey(), $otherId)
+            : $this->related->whereIn($this->related->getPrimaryKey(), []);
     }
 
     public function match(Model $parent): array
@@ -82,7 +73,7 @@ class BelongsToMany extends Relation
         return $return;
     }
 
-    public function getResults()
+    public function getResults(): mixed
     {
         if (empty($this->join)) {
             $this->join = $this->setJoin();

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Qubus\Expressive\Migration\Adapter;
 
 use Exception;
-use Qubus\Dbal\Connection;
-use Qubus\Dbal\Schema\CreateTable;
+use Qubus\Expressive\Schema\CreateTable;
+use Qubus\Expressive\Connection;
 use Qubus\Expressive\Migration\Migration;
 use Qubus\Support\DateTime\QubusDateTimeImmutable;
 

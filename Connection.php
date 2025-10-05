@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Qubus\Expressive;
+
+use PDO;
+
+interface Connection
+{
+    public PDO|null $pdo { get; }
+
+    public function query(string $sql, array $params = []): ResultSet;
+
+    public function queryBuilder(): QueryBuilder;
+
+    public function getSchema(): Schema;
+}

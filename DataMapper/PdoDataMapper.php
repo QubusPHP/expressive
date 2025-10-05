@@ -1,20 +1,12 @@
 <?php
 
-/**
- * Qubus\Expressive
- *
- * @link       https://github.com/QubusPHP/expressive
- * @copyright  2022
- * @author     Joshua Parker <joshua@joshuaparker.dev>
- * @license    https://opensource.org/licenses/mit-license.php MIT License
- */
-
 declare(strict_types=1);
 
 namespace Qubus\Expressive\DataMapper;
 
 use PDO;
-use Qubus\Dbal\Connection;
+use Qubus\Expressive\Connection;
+use Qubus\Expressive\QueryBuilder;
 use ReflectionClass;
 use ReflectionException;
 
@@ -65,9 +57,34 @@ class PdoDataMapper implements DataMapper
         }
     }
 
-    public function getPdo(): PDO
+    /**
+     * @return PDO|null
+     */
+    public function getPdo(): ?PDO
     {
         return $this->connection->pdo;
+    }
+
+    /**
+     * @return QueryBuilder
+     */
+    public function queryBuilder(): QueryBuilder
+    {
+        return $this->connection->queryBuilder()->table($this->table);
+    }
+
+    /**
+     * @param array $data
+     * @return array
+     */
+    public function hydrate(array $data): array
+    {
+        $objects = [];
+        foreach ($data as $d) {
+            $objects[$d[$this->columns['id']]] = $this->mapRowToObject($d);
+        }
+
+        return $objects;
     }
 
     public function findAll(string $orderBy = '', array $options = []): array

@@ -12,10 +12,24 @@
     <arg value="p"/>
 
     <!-- Paths to check -->
-    <file>./ActiveRecord</file>
-    <file>./DataMapper</file>
-    <file>./Schema</file>
-    <file>./OrmBuilder.php</file>
+    <file>ActiveRecord</file>
+    <file>Connection</file>
+    <file>DataMapper</file>
+    <file>Helpers</file>
+    <file>Migration</file>
+    <file>Schema</file>
+    <file>Traits</file>
+    <file>Connection.php</file>
+    <file>Database.php</file>
+    <file>DbalException.php</file>
+    <file>DsnGenerator.php</file>
+    <file>Expression.php</file>
+    <file>Identifier.php</file>
+    <file>QueryBuilder.php</file>
+    <file>QueryBuilderException.php</file>
+    <file>ResultSet.php</file>
+    <file>Schema.php</file>
+    <file>Structure.php</file>
 
     <!-- Include rules from the Qubus Coding Standard -->
     <rule ref="QubusCodingStandard"/>

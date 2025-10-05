@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Qubus\Expressive
- *
- * @link       https://github.com/QubusPHP/expressive
- * @copyright  2022
- * @author     Joshua Parker <joshua@joshuaparker.dev>
- * @license    https://opensource.org/licenses/mit-license.php MIT License
- */
-
 declare(strict_types=1);
 
 namespace Qubus\Expressive\ActiveRecord;
@@ -25,7 +16,7 @@ class Result implements Countable, IteratorAggregate
     protected ?Model $model = null;
     protected ?QueryBuilder $query = null;
 
-    protected array $rows;
+    protected array $rows = [];
 
     public function __construct(Model $model, ?QueryBuilder $query = null)
     {
@@ -33,10 +24,10 @@ class Result implements Countable, IteratorAggregate
         $this->query = $query;
     }
 
-    public function row()
+    public function row(): ?Row
     {
         if ($this->query === false) {
-            return;
+            return null;
         }
 
         return new Row(model: $this->model, rowObject: $this->query);
@@ -68,7 +59,7 @@ class Result implements Countable, IteratorAggregate
         return $this->row();
     }
 
-    public function pluck($field)
+    public function pluck($field): mixed
     {
         $first = $this->row();
 
@@ -76,10 +67,10 @@ class Result implements Countable, IteratorAggregate
     }
 
     // Eager loading
-    public function load($method)
+    public function load($method): void
     {
         if (!is_callable(value: [$this->model, $method])) {
-            return false;
+            return;
         }
 
         $relation = call_user_func(callback: [$this->model, $method]);

@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Qubus\Expressive
- *
- * @link       https://github.com/QubusPHP/expressive
- * @copyright  2022
- * @author     Joshua Parker <joshua@joshuaparker.dev>
- * @license    https://opensource.org/licenses/mit-license.php MIT License
- */
-
 declare(strict_types=1);
 
 namespace Qubus\Expressive\ActiveRecord\Relations;
@@ -26,16 +17,11 @@ class HasMany extends Relation
         $this->foreignKey = $foreignKey;
     }
 
-    public function setJoin()
+    public function setJoin(): mixed
     {
-        if ($this->eagerLoading) {
-            return $this->related->whereIn((string) $this->foreignKey, (array) $this->eagerKeys);
-        } else {
-            return $this->related->where(
-                $this->foreignKey,
-                $this->parent->getData(field: $this->parent->getPrimaryKey())
-            );
-        }
+        return $this->eagerLoading
+            ? $this->related->whereIn((string) $this->foreignKey, (array) $this->eagerKeys)
+            : $this->related->where($this->foreignKey, $this->parent->getData(field: $this->parent->getPrimaryKey()));
     }
 
     public function match(Model $parent): array
@@ -51,7 +37,7 @@ class HasMany extends Relation
         return $return;
     }
 
-    public function getResults()
+    public function getResults(): mixed
     {
         if (empty($this->join)) {
             $this->join = $this->setJoin();

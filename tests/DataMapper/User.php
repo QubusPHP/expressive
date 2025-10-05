@@ -8,27 +8,21 @@ use Qubus\Expressive\DataMapper\Entity;
 use Qubus\Expressive\DataMapper\Property;
 use Qubus\Expressive\DataMapper\SerializableEntity;
 
-#[Entity('qub_user')]
+#[Entity('users')]
 class User extends SerializableEntity
 {
     #[Property('user_id')]
     public int|string $id;
 
-    #[Property('user_login')]
+    #[Property('username')]
     public int|string $login;
 
-    #[Property('user_fname')]
+    #[Property('first_name')]
     public string $fname;
 
-    #[Property('user_lname')]
+    #[Property('last_name')]
     public string $lname;
 
-    #[Property('user_email')]
+    #[Property('email')]
     public string $email;
-
-    #[Property('user_pass')]
-    public string $pass;
-
-    #[Property('user_registered')]
-    public string $registered;
 }

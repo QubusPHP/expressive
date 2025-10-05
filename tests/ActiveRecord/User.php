@@ -10,12 +10,5 @@ class User extends Model
 {
     protected string $primaryKey = 'user_id';
 
-    protected ?string $tablePrefix = 'qub_';
-
-    protected ?string $tableName = 'user';
-
-    public function posts()
-    {
-        return $this->hasMany(related: Post::class, foreignKey: 'post_author');
-    }
+    protected ?string $tableName = 'users';
 }

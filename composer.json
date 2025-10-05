@@ -1,7 +1,7 @@
 {
     "name": "qubus/expressive",
     "type": "library",
-    "description": "QueryBuilder with DataMapper and ActiveRecord.",
+    "description": "Database Abstraction Layer with DataMapper and ActiveRecord.",
     "keywords": ["database","querybuilder","dbal","database abstraction","orm","datamapper","activerecord"],
     "license": "MIT",
     "authors": [
@@ -14,7 +14,6 @@
         "php": ">=8.4",
         "ext-pdo": "*",
         "qubus/config": "^4",
-        "qubus/dbal": "4.x-dev",
         "qubus/event-dispatcher": "^4",
         "qubus/inheritance": "^4",
         "qubus/support": "^4",
@@ -36,7 +35,7 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/phpunit",
+        "test": "vendor/bin/pest",
         "cs-check": "phpcs",
         "cs-fix": "phpcbf"
     },
