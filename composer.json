@@ -14,7 +14,7 @@
         "php": ">=8.4",
         "ext-pdo": "*",
         "qubus/config": "^4",
-        "qubus/dbal": "4.x",
+        "qubus/dbal": "4.x-dev",
         "qubus/event-dispatcher": "^4",
         "qubus/inheritance": "^4",
         "qubus/support": "^4",
