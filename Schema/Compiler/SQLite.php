@@ -101,7 +101,7 @@ class SQLite extends Compiler
     /**
      * @inheritDoc
      */
-    public function currentDatabase(string $dsn): array
+    public function currentDatabase(?string $dsn = null): array
     {
         return [
             'result' => substr(string: $dsn, offset: strpos(haystack: $dsn, needle: ':') + 1),

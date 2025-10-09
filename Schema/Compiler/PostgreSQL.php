@@ -162,7 +162,7 @@ class PostgreSQL extends Compiler
     /**
      * @inheritDoc
      */
-    public function currentDatabase(string $dsn): array
+    public function currentDatabase(?string $dsn = null): array
     {
         return [
             'sql'    => 'SELECT current_schema()',

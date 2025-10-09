@@ -108,7 +108,7 @@ class SQLServer extends Compiler
         ];
     }
 
-    public function currentDatabase(string $dsn): array
+    public function currentDatabase(?string $dsn = null): array
     {
         return [
             'sql'    => 'SELECT SCHEMA_NAME()',
