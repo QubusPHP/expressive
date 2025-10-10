@@ -39,7 +39,6 @@
         "cs-check": "phpcs",
         "cs-fix": "phpcbf"
     },
-    "minimum-stability": "dev",
     "config": {
         "optimize-autoloader": true,
         "sort-packages": true,
