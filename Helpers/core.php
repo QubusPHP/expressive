@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Qubus\Expressive\Helpers;
 
+use Faker\Generator;
 use PDO;
 
 use function is_bool;
@@ -18,4 +19,14 @@ function detect_type(mixed $value): int
         is_null__($value)   => PDO::PARAM_NULL,
         default             => PDO::PARAM_STR,
     };
+}
+
+/**
+ * Generate fake data.
+ *
+ * @return Generator
+ */
+function fake(): Generator
+{
+    return \Faker\Factory::create();
 }

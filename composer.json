@@ -13,6 +13,7 @@
     "require": {
         "php": ">=8.4",
         "ext-pdo": "*",
+        "fakerphp/faker": "^1.24",
         "qubus/config": "^4",
         "qubus/event-dispatcher": "^4",
         "qubus/inheritance": "^4",
