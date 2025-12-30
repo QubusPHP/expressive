@@ -24,9 +24,12 @@ function detect_type(mixed $value): int
 /**
  * Generate fake data.
  *
+ * @param string|null $locale
  * @return Generator
  */
-function fake(): Generator
+function fake(?string $locale = null): Generator
 {
-    return \Faker\Factory::create();
+    $locale ??= 'en_US';
+
+    return \Faker\Factory::create($locale);
 }
