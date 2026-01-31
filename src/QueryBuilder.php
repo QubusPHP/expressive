@@ -459,7 +459,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         } elseif (! is_array(value: $parameters)) { //where(colum,value) => colum=value
             $condition .= ' = ?';
             $parameters = [$parameters];
-        } elseif (is_array(value: $parameters)) { // where("column", [1, 2]) => column IN (?,?)
+        } else { // where("column", [1, 2]) => column IN (?,?)
             $placeholders = $this->makePlaceholders(numberOfPlaceholders: count($parameters));
             $condition = "({$condition} IN ({$placeholders}))";
         }
@@ -805,13 +805,13 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         $this->joinOn = true;
         $constraint = str_replace(
             search: '%join.',
-            replace: $this->getTableAlias() . '.',
+            replace: $this->getTableAlias() . 'expressive',
             subject: $query->getJoinOnString()
         );
 
         $this->select(
             columns: array_map(callback: function ($row) {
-                return str_replace('%join.', $this->getTableAlias() . '.', $row);
+                return str_replace('%join.', $this->getTableAlias() . 'expressive', $row);
             }, array: $query->getSelectFields())
         );
 
@@ -1760,6 +1760,6 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function formatColumnName(string $column): string
     {
-        return str_replace(search: '%this.', replace: $this->getTableAlias() . '.', subject: $column);
+        return str_replace(search: '%this.', replace: $this->getTableAlias() . 'expressive', subject: $column);
     }
 }
