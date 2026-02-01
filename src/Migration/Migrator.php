@@ -105,9 +105,9 @@ class Migrator
      * Set ObjectMap.
      *
      * @param ArrayAccess $objectmap
-     * @return Migrator
+     * @return self
      */
-    public function setObjectMap(ArrayAccess $objectmap): static
+    public function setObjectMap(ArrayAccess $objectmap): self
     {
         $this->objectmap = $objectmap;
         return $this;
@@ -127,9 +127,9 @@ class Migrator
      * Set Adapter
      *
      * @param MigrationAdapter $adapter
-     * @return Migrator
+     * @return self
      */
-    public function setAdapter(MigrationAdapter $adapter): static
+    public function setAdapter(MigrationAdapter $adapter): self
     {
         $this->adapter = $adapter;
         return $this;
@@ -149,9 +149,9 @@ class Migrator
      * Set Output
      *
      * @param OutputInterface $output
-     * @return Migrator
+     * @return self
      */
-    public function setOutput(OutputInterface $output): static
+    public function setOutput(OutputInterface $output): self
     {
         $this->output = $output;
         return $this;

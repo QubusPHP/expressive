@@ -40,9 +40,9 @@ class DbalMigrationAdapter implements MigrationAdapter
      * Up
      *
      * @param Migration $migration
-     * @return MigrationAdapter
+     * @return self
      */
-    public function up(Migration $migration): MigrationAdapter
+    public function up(Migration $migration): self
     {
         $this->connection->queryBuilder()
             ->table($this->tableName)
@@ -58,9 +58,9 @@ class DbalMigrationAdapter implements MigrationAdapter
      * Down
      *
      * @param Migration $migration
-     * @return MigrationAdapter
+     * @return self
      */
-    public function down(Migration $migration): MigrationAdapter
+    public function down(Migration $migration): self
     {
         $this->connection->queryBuilder()
             ->table($this->tableName)
@@ -90,10 +90,10 @@ class DbalMigrationAdapter implements MigrationAdapter
     /**
      * Create Schema
      *
-     * @return MigrationAdapter
+     * @return self
      * @throws Exception
      */
-    public function createSchema(): MigrationAdapter
+    public function createSchema(): self
     {
         $this->connection->getSchema()->create($this->tableName, function (CreateTable $table) {
             $table->integer(name: 'id')->size(value: 'big')->autoincrement();

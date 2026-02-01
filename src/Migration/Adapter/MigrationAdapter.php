@@ -19,17 +19,17 @@ interface MigrationAdapter
      * Up
      *
      * @param Migration $migration
-     * @return MigrationAdapter
+     * @return self
      */
-    public function up(Migration $migration): MigrationAdapter;
+    public function up(Migration $migration): self;
 
     /**
      * Down
      *
      * @param Migration $migration
-     * @return MigrationAdapter
+     * @return self
      */
-    public function down(Migration $migration): MigrationAdapter;
+    public function down(Migration $migration): self;
 
     /**
      * Is the schema ready?
@@ -41,7 +41,7 @@ interface MigrationAdapter
     /**
      * Create Schema
      *
-     * @return MigrationAdapter
+     * @return self
      */
-    public function createSchema(): MigrationAdapter;
+    public function createSchema(): self;
 }

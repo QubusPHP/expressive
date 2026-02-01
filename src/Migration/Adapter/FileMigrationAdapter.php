@@ -33,7 +33,7 @@ class FileMigrationAdapter implements MigrationAdapter
      * {@inheritdoc}
      * @throws TypeException
      */
-    public function up(Migration $migration): MigrationAdapter
+    public function up(Migration $migration): self
     {
         $versions = $this->fetchAll();
         if (in_array(needle: $migration->getVersion(), haystack: $versions)) {
@@ -49,7 +49,7 @@ class FileMigrationAdapter implements MigrationAdapter
      * {@inheritdoc}
      * @throws TypeException
      */
-    public function down(Migration $migration): MigrationAdapter
+    public function down(Migration $migration): self
     {
         $versions = $this->fetchAll();
         if (!in_array(needle: $migration->getVersion(), haystack: $versions)) {
@@ -73,7 +73,7 @@ class FileMigrationAdapter implements MigrationAdapter
      * {@inheritdoc}
      * @throws TypeException
      */
-    public function createSchema(): MigrationAdapter
+    public function createSchema(): self
     {
         if (!is_writable(filename: dirname(path: $this->filename))) {
             throw new TypeException(message: sprintf('The file "%s" is not writeable', $this->filename));

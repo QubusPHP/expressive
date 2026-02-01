@@ -28,6 +28,9 @@ abstract class PdoConnection implements Connection
     public ?PDO $pdo = null {
         get => $this->pdo;
     }
+    public string $driverName {
+        get => 'pdo';
+    }
     //phpcs:enable
 
     protected array $config = [];
@@ -357,9 +360,9 @@ abstract class PdoConnection implements Connection
         return $result;
     }
 
-    // ---------------------------
-    // Driver feature detection
-    // ---------------------------
+    /**
+     * {@inheritDoc}
+     */
     public function supportsReturning(): bool
     {
         return match ($this->driverName) {
@@ -368,6 +371,9 @@ abstract class PdoConnection implements Connection
         };
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function supportsUpsert(): bool
     {
         return match ($this->driverName) {

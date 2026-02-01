@@ -90,9 +90,9 @@ class Migration
      * Set version.
      *
      * @param int|string $version
-     * @return Migration
+     * @return self
      */
-    public function setVersion(int|string $version): static
+    public function setVersion(int|string $version): self
     {
         $this->version = $version;
         return $this;
@@ -122,9 +122,9 @@ class Migration
      * Set ObjectMap.
      *
      * @param ArrayAccess $objectmap
-     * @return Migration
+     * @return self
      */
-    public function setObjectMap(ArrayAccess $objectmap): static
+    public function setObjectMap(ArrayAccess $objectmap): self
     {
         $this->objectmap = $objectmap;
         return $this;
@@ -145,9 +145,9 @@ class Migration
      * Set Output.
      *
      * @param OutputInterface $output
-     * @return Migration
+     * @return self
      */
-    public function setOutput(OutputInterface $output): static
+    public function setOutput(OutputInterface $output): self
     {
         $this->output = $output;
         return $this;
@@ -167,9 +167,9 @@ class Migration
      * Set Input.
      *
      * @param InputInterface $input
-     * @return Migration
+     * @return self
      */
-    public function setInput(InputInterface $input): static
+    public function setInput(InputInterface $input): self
     {
         $this->input = $input;
         return $this;
@@ -216,9 +216,9 @@ class Migration
      * Set Dialog Helper.
      *
      * @param QuestionHelper $dialogHelper
-     * @return Migration
+     * @return self
      */
-    public function setDialogHelper(QuestionHelper $dialogHelper): static
+    public function setDialogHelper(QuestionHelper $dialogHelper): self
     {
         $this->dialogHelper = $dialogHelper;
         return $this;

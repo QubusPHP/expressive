@@ -186,7 +186,7 @@ class Model
             return false;
         }
 
-        $class = new static(newData: $data);
+        $class = new self(newData: $data);
         $class->save();
 
         return $class;

@@ -15,4 +15,16 @@ interface Connection
     public function queryBuilder(): QueryBuilder;
 
     public function getSchema(): Schema;
+
+    /**
+     * Driver feature detection.
+     *
+     * @return bool
+     */
+    public function supportsReturning(): bool;
+
+    /**
+     * @return bool
+     */
+    public function supportsUpsert(): bool;
 }

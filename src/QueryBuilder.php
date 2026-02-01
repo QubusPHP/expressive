@@ -50,21 +50,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
 {
     use TapObjectAware;
 
-    // Operators
-    public const string OPERATOR_AND = ' AND ';
-    public const string OPERATOR_OR = ' OR ';
-
     // Directional filter
     public const string ORDERBY_ASC = 'ASC';
     public const string ORDERBY_DESC = 'DESC';
-
-    // Joins
-    public const string JOIN_INNER = 'INNER';
-    public const string JOIN_OUTER = 'OUTER';
-    public const string JOIN_LEFT = 'LEFT';
-    public const string JOIN_RIGHT = 'RIGHT';
-    public const string JOIN_RIGHT_OUTER = 'RIGHT OUTER';
-    public const string JOIN_LEFT_OUTER = 'LEFT OUTER';
 
     // Breaks
     public const string EOL = "\n";
@@ -86,31 +74,40 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     protected array $joinSources = [];
     protected ?int $limit = null;
     protected ?int $offset = null;
+    /** @var array<string> $orderBy */
     protected array $orderBy = [];
+    /** @var array<string> $groupBy */
     protected array $groupBy = [];
+    /** @var array<mixed> $whereParameters */
     protected array $whereParameters = [];
+    /** @var array<mixed> $whereConditions */
     protected array $whereConditions = [];
     protected string $andOrOperator = self::OPERATOR_AND;
+    /** @var array<mixed> $having */
     protected array $having = [];
     protected ?string $returning = null;
-
+    /** @var array<mixed>|null $upsert */
     protected ?array $upsert = null;
     protected bool $wrapOpen = false;
     protected int $lastWrapPosition = 0;
     protected bool $isFluentQuery = true;
     protected bool $pdoExecuted = false;
+    /** @var array<mixed> $data */
     protected array $data = [];
     protected bool $debugSqlQuery = false;
     protected string $sqlQuery = '';
+    /** @var array<mixed> $sqlParameters */
     protected array $sqlParameters = [];
+    /** @var array<string> $dirtyFields */
     protected array $dirtyFields = [];
+    /** @var array<string, array> $referenceKeys */
     protected array $referenceKeys = [];
     protected bool $joinOn = false;
     protected static array $references = [];
     protected ?string $tablePrefix = null;
     /** @var ?Schema $schema */
     protected ?Schema $schema = null;
-    /** @var array $tableStructure */
+    /** @var array<string> $tableStructure */
     public array $tableStructure = [
         'primaryKeyname' => 'id',
         'foreignKeyname' => '%s_id',
@@ -136,13 +133,16 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         $this->setTablePrefix(tablePrefix: $tablePrefix);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public static function fromInstance(
         Connection $connection,
         string $primaryKeyName = 'id',
         ?string $tablePrefix = null
-    ): static {
+    ): self {
         if (static::$instance === null) {
-            static::$instance = new static($connection)
+            static::$instance = new self($connection)
                 ->setStructure(primaryKeyName: $primaryKeyName)
                 ->setTablePrefix(tablePrefix: $tablePrefix);
         }
@@ -152,7 +152,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
-    public function table(string $tableName, ?string $alias = null): static
+    public function table(string $tableName, ?string $alias = null): self
     {
         $instance = clone $this;
 
@@ -166,7 +166,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Return the name of the table.
+     * {@inheritDoc}
      */
     public function getTableName(): string
     {
@@ -174,19 +174,16 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Set the table alias.
-     *
-     * @param string $alias
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function setTableAlias(string $alias): static
+    public function setTableAlias(string $alias): self
     {
         $this->tableAlias = $alias;
         return $this;
     }
 
     /**
-     * Get table Alias
+     * {@inheritDoc}
      */
     public function getTableAlias(): string
     {
@@ -199,7 +196,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     public function setStructure(
         string $primaryKeyName = 'id',
         string $foreignKeyName = '%s_id'
-    ): static {
+    ): self {
         $this->tableStructure = [
             'primaryKeyname' => $primaryKeyName,
             'foreignKeyname' => $foreignKeyName,
@@ -207,14 +204,17 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         return $this;
     }
 
-    public function setTablePrefix(?string $tablePrefix = ''): static
+    /**
+     * {@inheritDoc}
+     */
+    public function setTablePrefix(?string $tablePrefix = ''): self
     {
         $this->tablePrefix = $tablePrefix;
         return $this;
     }
 
     /**
-     * Return the table prefix.
+     * {@inheritDoc}
      */
     public function getTablePrefix(): ?string
     {
@@ -222,9 +222,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Return the table structure.
-     *
-     * @return array
+     * {@inheritDoc}
      */
     public function getStructure(): array
     {
@@ -232,9 +230,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Get the primary key name.
-     *
-     * @return string
+     * {@inheritDoc}
      */
     public function getPrimaryKeyname(): string
     {
@@ -242,9 +238,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Get foreign key name.
-     *
-     * @return string
+     * {@inheritDoc}
      */
     public function getForeignKeyname(): string
     {
@@ -266,7 +260,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         string $query,
         array $parameters = [],
         bool $returnAsPdoStmt = false
-    ): static|PDOStatement {
+    ): self|PDOStatement {
         $this->sqlParameters = $parameters;
         $this->sqlQuery = $query;
 
@@ -364,7 +358,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
-    public function findOne(int|string|null $id = null): static|bool
+    public function findOne(int|string|null $id = null): self|bool
     {
         if ($id) {
             $this->wherePK(id: $id);
@@ -394,13 +388,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Create an instance from the given row (an associative
-     * array of data fetched from the database).
-     *
-     * @param array $data
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function fromArray(array $data): static
+    public function fromArray(array $data): self
     {
         $row = clone $this;
         $row->reset();
@@ -415,7 +405,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
-    public function select(mixed $columns = '*', ?string $alias = null): static
+    public function select(mixed $columns = '*', ?string $alias = null): self
     {
         $this->isFluentQuery = true;
         if ($alias && ! is_array(value: $columns)) {
@@ -432,7 +422,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
-    public function where(mixed $condition, mixed $parameters = null): static
+    public function where(mixed $condition, mixed $parameters = null): self
     {
         $this->isFluentQuery = true;
 
@@ -480,9 +470,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * Create an AND operator in the where clause
      *
-     * @return QueryBuilder
+     * @return $this
      */
-    public function and(): static
+    public function and(): self
     {
         if ($this->wrapOpen) {
             $this->whereConditions[] = self::OPERATOR_AND;
@@ -497,9 +487,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * Create an OR operator in the where clause
      *
-     * @return QueryBuilder
+     * @return $this
      */
-    public function or(): static
+    public function or(): self
     {
         if ($this->wrapOpen) {
             $this->whereConditions[] = self::OPERATOR_OR;
@@ -514,9 +504,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * To group multiple where clauses together.
      *
-     * @return QueryBuilder
+     * @return $this
      */
-    public function wrap(): static
+    public function wrap(): self
     {
         $this->wrapOpen = true;
 
@@ -535,120 +525,81 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Where Primary key
-     *
-     * @param int|string $id
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function wherePK(int|string $id): static
+    public function wherePK(int|string $id): self
     {
         return $this->where(condition: $this->getPrimaryKeyname(), parameters: $id);
     }
 
     /**
-     * WHERE $columName != $value
-     *
-     * @param string $columnName
-     * @param mixed $value
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereNot(string $columnName, mixed $value): static
+    public function whereNot(string $columnName, mixed $value): self
     {
         return $this->where(condition: "$columnName != ?", parameters: $value);
     }
 
     /**
-     * WHERE $columName LIKE $value
-     *
-     * @param string $columnName
-     * @param mixed $value
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereLike(string $columnName, mixed $value): static
+    public function whereLike(string $columnName, mixed $value): self
     {
         return $this->where(condition: "$columnName LIKE ?", parameters: $value);
     }
 
     /**
-     * WHERE $columName NOT LIKE $value
-     *
-     * @param string $columnName
-     * @param mixed $value
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereNotLike(string $columnName, mixed $value): static
+    public function whereNotLike(string $columnName, mixed $value): self
     {
         return $this->where(condition: "$columnName NOT LIKE ?", parameters: $value);
     }
 
     /**
-     * WHERE $columName > $value
-     *
-     * @param string $columnName
-     * @param mixed $value
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereGt(string $columnName, mixed $value): static
+    public function whereGt(string $columnName, mixed $value): self
     {
         return $this->where(condition: "$columnName > ?", parameters: $value);
     }
 
     /**
-     * WHERE $columName >= $value
-     *
-     * @param string $columnName
-     * @param mixed $value
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereGte(string $columnName, mixed $value): static
+    public function whereGte(string $columnName, mixed $value): self
     {
         return $this->where(condition: "$columnName >= ?", parameters: $value);
     }
 
     /**
-     * WHERE $columName < $value
-     *
-     * @param string $columnName
-     * @param mixed $value
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereLt(string $columnName, mixed $value): static
+    public function whereLt(string $columnName, mixed $value): self
     {
         return $this->where(condition: "$columnName < ?", parameters: $value);
     }
 
     /**
-     * WHERE $columName <= $value
-     *
-     * @param string $columnName
-     * @param mixed $value
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereLte(string $columnName, mixed $value): static
+    public function whereLte(string $columnName, mixed $value): self
     {
         return $this->where(condition: "$columnName <= ?", parameters: $value);
     }
 
     /**
-     * WHERE $columName IN (?,?,?,...)
-     *
-     * @param string $columnName
-     * @param array $values
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereIn(string $columnName, array $values): static
+    public function whereIn(string $columnName, array $values): self
     {
         return $this->where(condition: $columnName, parameters: $values);
     }
 
     /**
-     * WHERE $columName NOT IN (?,?,?,...)
-     *
-     * @param string $columnName
-     * @param array $values
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereNotIn(string $columnName, array $values): static
+    public function whereNotIn(string $columnName, array $values): self
     {
         $placeholders = $this->makePlaceholders(numberOfPlaceholders: count($values));
 
@@ -656,28 +607,22 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * WHERE $columName IS NULL
-     *
-     * @param string $columnName
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereNull(string $columnName): static
+    public function whereNull(string $columnName): self
     {
         return $this->where(condition: "({$columnName} IS NULL)");
     }
 
     /**
-     * WHERE $columName IS NOT NULL
-     *
-     * @param string $columnName
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function whereNotNull(string $columnName): static
+    public function whereNotNull(string $columnName): self
     {
         return $this->where(condition: "({$columnName} IS NOT NULL)");
     }
 
-    public function having($statement, $operator = self::OPERATOR_AND): static
+    public function having($statement, string $operator = self::OPERATOR_AND): self
     {
         $this->isFluentQuery = true;
         $this->having[] = [
@@ -688,13 +633,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * ORDER BY $columnName (ASC | DESC)
-     *
-     * @param  string   $columnName - The name of the colum or an expression
-     * @param  string   $ordering   (DESC | ASC)
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function orderBy(string $columnName, string $ordering = ''): static
+    public function orderBy(string $columnName, string $ordering = 'ASC'): self
     {
         $this->isFluentQuery = true;
         $this->orderBy[] = "{$columnName} {$ordering}";
@@ -702,12 +643,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * GROUP BY $columnName
-     *
-     * @param string $columnName
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function groupBy(string $columnName): static
+    public function groupBy(string $columnName): self
     {
         $this->isFluentQuery = true;
         $this->groupBy[] = $columnName;
@@ -715,12 +653,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * LIMIT $limit
-     *
-     * @param int|null $limit
-     * @return QueryBuilder|int|null
+     * {@inheritDoc}
      */
-    public function limit(?int $limit = null): static|int|null
+    public function limit(?int $limit = null): self|int|null
     {
         if ($limit) {
             $this->isFluentQuery = true;
@@ -732,12 +667,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * OFFSET $offset
-     *
-     * @param int|null $offset
-     * @return QueryBuilder|int|null
+     * {@inheritDoc}
      */
-    public function offset(?int $offset = null): static|int|null
+    public function offset(?int $offset = null): self|int|null
     {
         if ($offset) {
             $this->isFluentQuery = true;
@@ -749,12 +681,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * @param int $perPage
-     * @param int $page
-     *
-     * @return $this
+     * {@inheritDoc}
      */
-    public function pagination(int $perPage, int $page): static
+    public function pagination(int $perPage, int $page): self
     {
         $this->limit = $perPage;
         $this->offset = (($page > 0 ? $page : 1) - 1) * $perPage;
@@ -767,24 +696,18 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      * ----------------------------------------------------------------------------- */
 
     /**
-     * Build a join
-     *
-     * @param string $tableName
-     * @param string $constraint -> id = profile.user_id
-     * @param string $tableAlias - The alias of the table name
-     * @param string $joinOperator - LEFT | INNER | etc...
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
     public function join(
         string $tableName,
         string $constraint,
         string $tableAlias = '',
         string $joinOperator = self::JOIN_LEFT
-    ): static {
+    ): self {
         $this->isFluentQuery = true;
         $join = trim(string: "{$joinOperator} JOIN");
         $join .= self::EOL_TAB;
-        $join .= " {$tableName} " . $tableAlias ? "AS {$tableAlias} " : '';
+        $join .= "AS {$tableAlias} ";
         $join .= self::EOL_TAB . self::TAB;
         $join .= "ON ({$constraint})";
         $join .= self::EOL;
@@ -793,14 +716,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * An alias to join by using a QueryBuilder instance.
-     * The QueryBuilder instance may have select and where statement for the ON clause
-     *
-     * @param QueryBuilder $query
-     * @param string $joinOperator
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function on(QueryBuilder $query, string $joinOperator = self::JOIN_LEFT): static
+    public function on(Database $query, string $joinOperator = self::JOIN_LEFT): self
     {
         $this->joinOn = true;
         $constraint = str_replace(
@@ -912,9 +830,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Return the select fields as array.
-     *
-     * @return array
+     * {@inheritDoc}
      */
     public function getSelectFields(): array
     {
@@ -999,9 +915,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Create the JOIN ... ON string when there is a join. It will be called by on().
-     *
-     * @return string
+     * {@inheritDoc}
      */
     public function getJoinOnString(): string
     {
@@ -1060,9 +974,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * Detect if it's a single row instance and reset it to PK.
      *
-     * @return QueryBuilder
+     * @return $this
      */
-    protected function setSingleWhere(): static
+    protected function setSingleWhere(): self
     {
         if ($this->isSingle) {
             $this->resetWhere();
@@ -1074,9 +988,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * Reset the where.
      *
-     * @return QueryBuilder
+     * @return $this
      */
-    protected function resetWhere(): static
+    protected function resetWhere(): self
     {
         $this->whereConditions = [];
         $this->whereParameters = [];
@@ -1087,16 +1001,20 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
       Insert
      * ----------------------------------------------------------------------------- */
 
-    // Returning (Postgres etc.)
-    public function returning(string $cols = '*'): static
+    /**
+     * {@inheritDoc}
+     */
+    public function returning(string $cols = '*'): self
     {
         $this->returning = $cols;
 
         return $this;
     }
 
-    // Upsert (basic support)
-    public function upsert(array $conflictCols, array $updateData): static
+    /**
+     * {@inheritDoc}
+     */
+    public function upsert(array $conflictCols, array $updateData): self
     {
         $this->upsert = [
             'conflict' => $conflictCols,
@@ -1119,7 +1037,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
-    public function insert(array $data): static|int
+    public function insert(array $data): self|int
     {
         $insertValues = [];
         $questionMarks = [];
@@ -1196,7 +1114,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
-    public function update(?array $data = null): static|int|false
+    public function update(?array $data = null): self|int|false
     {
         $this->setSingleWhere();
 
@@ -1256,7 +1174,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
-    public function delete(bool $deleteAll = false): static|int|false
+    public function delete(bool $deleteAll = false): self|int|false
     {
         $this->setSingleWhere();
 
@@ -1371,14 +1289,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      * ----------------------------------------------------------------------------- */
 
     /**
-     * To set data for update or insert
-     * $key can be an array for mass set
-     *
-     * @param  mixed    $key
-     * @param mixed|null $value
-     * @return QueryBuilder
+     * {@inheritDoc}
      */
-    public function set(mixed $key, mixed $value = null): static
+    public function set(mixed $key, mixed $value = null): self
     {
         if (is_array(value: $key)) {
             foreach ($key as $keyKey => $keyValue) {
@@ -1392,11 +1305,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Save, a shortcut to update() or insert().
-     *
-     * @return QueryBuilder|int|bool|static
+     * {@inheritDoc}
      */
-    public function save(): static|int|bool
+    public function save(): self|int|bool
     {
         if ($this->isSingle || count($this->whereConditions)) {
             return $this->update();
@@ -1409,10 +1320,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
       AGGREGATION
      * ----------------------------------------------------------------------------- */
     /**
-     * Return the aggregate count of column
-     *
-     * @param string|null $column - the column name
-     * @return float|int
+     * {@inheritDoc}
      */
     public function count(?string $column = null): float|int
     {
@@ -1423,10 +1331,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Return the aggregate max count of column
-     *
-     * @param string $column - the column name
-     * @return float|int
+     * {@inheritDoc}
      */
     public function max(string $column): float|int
     {
@@ -1434,10 +1339,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Return the aggregate min count of column
-     *
-     * @param string $column - the column name
-     * @return float|int
+     * {@inheritDoc}
      */
     public function min(string $column): float|int
     {
@@ -1445,10 +1347,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Return the aggregate sum count of column
-     *
-     * @param string $column - the column name
-     * @return float|int
+     * {@inheritDoc}
      */
     public function sum(string $column): float|int
     {
@@ -1456,10 +1355,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Return the aggregate average count of column
-     *
-     * @param string $column - the column name
-     * @return float|int
+     * {@inheritDoc}
      */
     public function avg(string $column): float|int
     {
@@ -1467,8 +1363,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * @param string $fn - The function to use for the aggregation
-     * @return float|int
+     * {@inheritDoc}
      */
     public function aggregate(string $fn): float|int
     {
@@ -1585,9 +1480,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * Reset fields
      *
-     * @return QueryBuilder
+     * @return $this
      */
-    public function reset(): static
+    public function reset(): self
     {
         $this->whereParameters = [];
         $this->selectFields = [];
@@ -1632,9 +1527,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      * and getSqlParameters to get the data
      *
      * @param bool $bool
-     * @return QueryBuilder
+     * @return $this
      */
-    public function debugSqlQuery(bool $bool = true): static
+    public function debugSqlQuery(bool $bool = true): self
     {
         $this->debugSqlQuery = $bool;
         return $this;
