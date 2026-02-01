@@ -100,7 +100,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     protected array $sqlParameters = [];
     /** @var array<string> $dirtyFields */
     protected array $dirtyFields = [];
-    /** @var array<string, array> $referenceKeys */
+    /** @var array<int|string, array> $referenceKeys */
     protected array $referenceKeys = [];
     protected bool $joinOn = false;
     protected static array $references = [];
@@ -1561,7 +1561,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
 
     public function __toString(): string
     {
-        return $this->isSingle ? $this->getPK() : $this->tableName;
+        return $this->isSingle ? (string) $this->getPK() : $this->tableName;
     }
 
     /**

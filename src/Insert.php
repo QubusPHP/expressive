@@ -10,17 +10,17 @@ interface Insert
      * Returning (Postgres etc.)
      *
      * @param string $cols
-     * @return self
+     * @return Database
      */
-    public function returning(string $cols = '*'): self;
+    public function returning(string $cols = '*'): Database;
 
     /**
      * Upsert (basic support)
      * @param array $conflictCols
      * @param array $updateData
-     * @return self
+     * @return Database
      */
-    public function upsert(array $conflictCols, array $updateData): self;
+    public function upsert(array $conflictCols, array $updateData): Database;
 
     /**
      * Retrieves the ID of the last record inserted.
@@ -36,7 +36,7 @@ interface Insert
      * If a single row is inserted, it will return its row instance
      *
      * @param  array    $data - data to populate
-     * @return self|int
+     * @return Database|int
      */
-    public function insert(array $data): self|int;
+    public function insert(array $data): Database|int;
 }

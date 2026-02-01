@@ -12,7 +12,7 @@ interface Delete
      * Use the query builder to create the where clause.
      *
      * @param bool $deleteAll When there is no where condition, setting to true will delete all.
-     * @return self|int|false
+     * @return Database|int|false
      */
-    public function delete(bool $deleteAll = false): self|int|false;
+    public function delete(bool $deleteAll = false): Database|int|false;
 }

@@ -20,14 +20,14 @@ interface Join
      * @param string $constraint -> id = profile.user_id
      * @param string $tableAlias - The alias of the table name
      * @param string $joinOperator - LEFT | INNER | etc...
-     * @return self
+     * @return Database
      */
     public function join(
         string $tableName,
         string $constraint,
         string $tableAlias = '',
         string $joinOperator = self::JOIN_LEFT
-    ): self;
+    ): Database;
 
     /**
      * An alias to join by using a Database instance.
@@ -35,9 +35,9 @@ interface Join
      *
      * @param Database $query
      * @param string $joinOperator
-     * @return self
+     * @return Database
      */
-    public function on(Database $query, string $joinOperator = self::JOIN_LEFT): self;
+    public function on(Database $query, string $joinOperator = self::JOIN_LEFT): Database;
 
     /**
      * Create the JOIN ... ON string when there is a join. It will be called by on().

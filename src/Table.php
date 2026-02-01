@@ -11,8 +11,9 @@ interface Table
      *
      * @param string $tableName Table name.
      * @param ?string $alias     The table alias name.
+     * @return Database
      */
-    public function table(string $tableName, ?string $alias = null): self;
+    public function table(string $tableName, ?string $alias = null): Database;
 
     /**
      * Return the name of the table.
@@ -23,9 +24,9 @@ interface Table
      * Set the table alias.
      *
      * @param string $alias
-     * @return self
+     * @return Database
      */
-    public function setTableAlias(string $alias): self;
+    public function setTableAlias(string $alias): Database;
 
     /**
      * Get table Alias
@@ -36,15 +37,15 @@ interface Table
      * @param string $primaryKeyName The primary key, ie: id
      * @param string $foreignKeyName The foreign key as a pattern: %s_id,
      *                               where %s will be substituted with the table name
-     * @return self
+     * @return Database
      */
-    public function setStructure(string $primaryKeyName = 'id', string $foreignKeyName = '%s_id'): self;
+    public function setStructure(string $primaryKeyName = 'id', string $foreignKeyName = '%s_id'): Database;
 
     /**
      * @param string|null $tablePrefix
-     * @return self
+     * @return Database
      */
-    public function setTablePrefix(?string $tablePrefix = ''): self;
+    public function setTablePrefix(?string $tablePrefix = ''): Database;
 
     /**
      * Return the table prefix.

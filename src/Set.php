@@ -12,14 +12,14 @@ interface Set
      *
      * @param  mixed    $key
      * @param mixed|null $value
-     * @return self
+     * @return Database
      */
-    public function set(mixed $key, mixed $value = null): self;
+    public function set(mixed $key, mixed $value = null): Database;
 
     /**
      * Save, a shortcut to update() or insert().
      *
-     * @return self|int|bool
+     * @return Database|int|bool
      */
-    public function save(): self|int|bool;
+    public function save(): Database|int|bool;
 }

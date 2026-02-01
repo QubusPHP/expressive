@@ -12,7 +12,7 @@ interface Update
      * Use the query builder to create the where clause.
      *
      * @param array|null $data the data to update
-     * @return self|int|false
+     * @return Database|int|false
      */
-    public function update(?array $data = null): self|int|false;
+    public function update(?array $data = null): Database|int|false;
 }

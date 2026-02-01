@@ -23,9 +23,9 @@ interface Select
      * @param bool $returnAsPdoStmt       True, it will return the PDOStatement
      *                                    false, it will return $this, which can be used for chaining
      *                                    or access the properties of the results.
-     * @return self|PDOStatement
+     * @return Database|PDOStatement
      */
-    public function query(string $query, array $parameters = [], bool $returnAsPdoStmt = false): self|PDOStatement;
+    public function query(string $query, array $parameters = [], bool $returnAsPdoStmt = false): Database|PDOStatement;
 
     /**
      * To find all rows and create their instances
@@ -45,18 +45,18 @@ interface Select
      * Return one row
      *
      * @param int|string|null $id Use to fetch by primary key.
-     * @return self|false
+     * @return Database|false
      */
-    public function findOne(int|string|null $id = null): self|bool;
+    public function findOne(int|string|null $id = null): Database|bool;
 
     /**
      * Create the select clause.
      *
      * @param mixed $columns The column(s) to select. Can be string or array of fields.
      * @param string|null $alias An alias to the column.
-     * @return self
+     * @return Database
      */
-    public function select(mixed $columns = '*', ?string $alias = null): self;
+    public function select(mixed $columns = '*', ?string $alias = null): Database;
 
     /**
      * Return the select fields as array.
@@ -70,22 +70,22 @@ interface Select
      * array of data fetched from the database).
      *
      * @param array $data
-     * @return self
+     * @return Database
      */
-    public function fromArray(array $data): self;
+    public function fromArray(array $data): Database;
 
     /**
      * @param $statement
      * @param string $operator
-     * @return self
+     * @return Database
      */
-    public function having($statement, string $operator = self::OPERATOR_AND): self;
+    public function having($statement, string $operator = self::OPERATOR_AND): Database;
 
     /**
      * GROUP BY $columnName
      *
      * @param string $columnName
-     * @return self
+     * @return Database
      */
-    public function groupBy(string $columnName): self;
+    public function groupBy(string $columnName): Database;
 }

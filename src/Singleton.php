@@ -10,11 +10,11 @@ interface Singleton
      * @param Connection $connection
      * @param string $primaryKeyName
      * @param string|null $tablePrefix
-     * @return self
+     * @return Database
      */
     public static function fromInstance(
         Connection $connection,
         string $primaryKeyName = 'id',
         ?string $tablePrefix = null
-    ): self;
+    ): Database;
 }
