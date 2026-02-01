@@ -151,4 +151,25 @@ interface Where
      * @return Database
      */
     public function pagination(int $perPage, int $page): Database;
+
+    /**
+     * Create an AND operator in the where clause
+     *
+     * @return Database
+     */
+    public function and(): Database;
+
+    /**
+     * Create an OR operator in the where clause
+     *
+     * @return Database
+     */
+    public function or(): Database;
+
+    /**
+     * To group multiple where clauses together.
+     *
+     * @return Database
+     */
+    public function wrap(): Database;
 }

@@ -468,9 +468,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Create an AND operator in the where clause
-     *
-     * @return $this
+     * {@inheritDoc}
      */
     public function and(): self
     {
@@ -485,9 +483,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * Create an OR operator in the where clause
-     *
-     * @return $this
+     * {@inheritDoc}
      */
     public function or(): self
     {
@@ -502,9 +498,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     }
 
     /**
-     * To group multiple where clauses together.
-     *
-     * @return $this
+     * {@inheritDoc}
      */
     public function wrap(): self
     {
