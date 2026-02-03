@@ -717,13 +717,13 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         $this->joinOn = true;
         $constraint = str_replace(
             search: '%join.',
-            replace: $this->getTableAlias() . 'expressive',
+            replace: $this->getTableAlias() . '.',
             subject: $query->getJoinOnString()
         );
 
         $this->select(
             columns: array_map(callback: function ($row) {
-                return str_replace('%join.', $this->getTableAlias() . 'expressive', $row);
+                return str_replace('%join.', $this->getTableAlias() . '.', $row);
             }, array: $query->getSelectFields())
         );
 
@@ -1649,6 +1649,6 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function formatColumnName(string $column): string
     {
-        return str_replace(search: '%this.', replace: $this->getTableAlias() . 'expressive', subject: $column);
+        return str_replace(search: '%this.', replace: $this->getTableAlias() . '.', subject: $column);
     }
 }
