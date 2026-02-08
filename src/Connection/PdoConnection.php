@@ -25,7 +25,7 @@ abstract class PdoConnection implements Connection
     use IdentifierAware;
 
     //phpcs:disable
-    public ?PDO $pdo = null {
+    public PDO $pdo {
         get => $this->pdo;
     }
     public string $driverName {

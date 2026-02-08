@@ -61,7 +61,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
 
     protected static ?QueryBuilder $instance = null;
     //phpcs:disable
-    protected Connection|null $connection = null {
+    protected Connection $connection {
         get => $this->connection;
     }
     //phpcs:enable

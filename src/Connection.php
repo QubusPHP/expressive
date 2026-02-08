@@ -8,7 +8,7 @@ use PDO;
 
 interface Connection
 {
-    public PDO|null $pdo { get; }
+    public PDO $pdo { get; }
 
     public function query(string $sql, array $params = []): ResultSet;
 

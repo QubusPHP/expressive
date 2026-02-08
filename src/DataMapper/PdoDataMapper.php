@@ -58,9 +58,9 @@ class PdoDataMapper implements DataMapper
     }
 
     /**
-     * @return PDO|null
+     * @return PDO
      */
-    public function getPdo(): ?PDO
+    public function getPdo(): PDO
     {
         return $this->connection->pdo;
     }
