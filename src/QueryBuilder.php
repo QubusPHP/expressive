@@ -168,7 +168,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
-    public function getTableName(): string
+    public function getTableName(): ?string
     {
         return $this->tableName;
     }
@@ -1466,7 +1466,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         $prop = array_merge($def, $args);
         $tableName = $this->getTableName() ?: $tablename;
 
-        return $prop['model'] ? : $this->table(tableName: $tableName);
+        return $prop['model'] ?: $this->table(tableName: $tableName);
     }
 
     // Utilities methods

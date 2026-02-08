@@ -18,7 +18,7 @@ interface Table
     /**
      * Return the name of the table.
      */
-    public function getTableName(): string;
+    public function getTableName(): ?string;
 
     /**
      * Set the table alias.
