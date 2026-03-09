@@ -165,6 +165,11 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         return $instance;
     }
 
+    public function getConnection(): Connection
+    {
+        return $this->connection;
+    }
+
     /**
      * {@inheritDoc}
      */

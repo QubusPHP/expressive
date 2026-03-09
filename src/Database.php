@@ -9,6 +9,8 @@ use Exception;
 
 interface Database extends Singleton, Table, Select, Where, Insert, Update, Set, Delete, Join, Aggregate
 {
+    public function getConnection(): Connection;
+
     /**
      * The associated schema instance.
      */
