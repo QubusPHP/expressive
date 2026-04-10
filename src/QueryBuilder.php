@@ -9,12 +9,14 @@ use Closure;
 use DateTime;
 use Exception;
 use IteratorAggregate;
+use JsonException;
 use PDO;
 use PDOException;
 use PDOStatement;
 use Qubus\Inheritance\TapObjectAware;
 use SplFixedArray;
 use Stringable;
+use Throwable;
 use Traversable;
 
 use function array_fill;
@@ -112,6 +114,8 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         'primaryKeyname' => 'id',
         'foreignKeyname' => '%s_id',
     ];
+    /** @var list<array<string, mixed>> */
+    private array $lastResult = [];
 
     /**
      * Constructor & set the table structure
@@ -261,6 +265,20 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * {@inheritDoc}
      */
+    public function raw(string $sql, array $params = []): array
+    {
+        $statement = $this->execute($sql, $params);
+        $rows = $statement->fetchAll();
+
+        /** @var list<array<string, mixed>> $rows */
+        $this->lastResult = $rows;
+
+        return $this->lastResult;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function query(
         string $query,
         array $parameters = [],
@@ -281,6 +299,96 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
                 return $this;
             }
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws JsonException
+     */
+    public function getResults(?string $query = null, string $output = Database::OBJECT): false|string|array
+    {
+        if ($query === null || $query === '') {
+            return [];
+        }
+
+        $rows = $this->raw($query);
+
+        return match ($output) {
+            Database::OBJECT => array_map(
+                static fn(array $row): object => (object) $row,
+                $rows
+            ),
+            Database::JSON_OBJECT => json_encode($rows, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT),
+            Database::ARRAY_A => $rows,
+            Database::ARRAY_N => array_map(
+                static fn(array $row): array => array_values($row),
+                $rows
+            ),
+            default => throw new PDOException('Invalid output type supplied to getResults().'),
+        };
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getVar(?string $query = null, int $x = 0, int $y = 0): string|int|null
+    {
+        if ($query !== null && $query !== '') {
+            $this->raw($query);
+        }
+
+        $row = $this->lastResult[$y] ?? null;
+        if ($row === null) {
+            return null;
+        }
+
+        $values = array_values($row);
+        $value = $values[$x] ?? null;
+
+        return is_string($value) || is_int($value) ? $value : null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getCol(?string $query = null, int $x = 0): ?array
+    {
+        if ($query !== null && $query !== '') {
+            $this->raw($query);
+        }
+
+        $column = [];
+
+        foreach ($this->lastResult as $row) {
+            $values = array_values($row);
+            $column[] = $values[$x] ?? null;
+        }
+
+        return $column;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getRow(?string $query = null, string $output = Database::OBJECT, int $y = 0): object|array|null
+    {
+        if ($query !== null && $query !== '') {
+            $this->raw($query);
+        }
+
+        $row = $this->lastResult[$y] ?? null;
+        if ($row === null) {
+            return null;
+        }
+
+        return match ($output) {
+            Database::OBJECT => (object) $row,
+            Database::ARRAY_A => $row,
+            Database::ARRAY_N => array_values($row),
+            default => throw new PDOException(
+                'Output type must be one of Database::OBJECT, Database::ARRAY_A, or Database::ARRAY_N.'
+            ),
+        };
     }
 
     /**
@@ -1554,10 +1662,6 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         return $this->sqlParameters;
     }
 
-    public function __clone()
-    {
-    }
-
     public function __toString(): string
     {
         return $this->isSingle ? (string) $this->getPK() : $this->tableName;
@@ -1590,7 +1694,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     /**
      * To create a string that will be used as key for the relationship.
      *
-     * @param  string  $key
+     * @param string $key
      * @param string $suffix
      * @return string
      */
@@ -1655,5 +1759,128 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     public function formatColumnName(string $column): string
     {
         return str_replace(search: '%this.', replace: $this->getTableAlias() . '.', subject: $column);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function prepare(string $query, mixed ...$params): string
+    {
+        if ($query === '') {
+            return '';
+        }
+
+        if (count($params) === 1 && is_array($params[0])) {
+            /** @var array<int|string, scalar|null> $params */
+            $params = $params[0];
+        }
+
+        foreach ($params as $param) {
+            if (!is_scalar($param) && $param !== null) {
+                throw new PDOException(
+                    sprintf('Unsupported value type (%s).', get_debug_type($param))
+                );
+            }
+        }
+
+        if (str_contains($query, '?')) {
+            $segments = explode('?', $query);
+            $result = array_shift($segments);
+
+            foreach ($segments as $index => $segment) {
+                if (!array_key_exists($index, $params)) {
+                    throw new PDOException(
+                        sprintf('Missing positional parameter at index %d.', $index)
+                    );
+                }
+
+                $result .= $this->quote((string) $params[$index]) . $segment;
+            }
+
+            return $result;
+        }
+
+        if (preg_match_all('/:[a-zA-Z_][a-zA-Z0-9_]*/', $query, $matches)) {
+            $result = $query;
+
+            foreach (array_unique($matches[0]) as $placeholder) {
+                $lookupKey = ltrim($placeholder, ':');
+
+                if (array_key_exists($placeholder, $params)) {
+                    $value = $params[$placeholder];
+                } elseif (array_key_exists($lookupKey, $params)) {
+                    $value = $params[$lookupKey];
+                } else {
+                    throw new PDOException(
+                        sprintf('Missing named parameter %s.', $placeholder)
+                    );
+                }
+
+                $quoted = $value === null ? 'NULL' : $this->quote((string) $value);
+                $result = str_replace($placeholder, $quoted, $result);
+            }
+
+            return $result;
+        }
+
+        throw new PDOException('The query must contain at least one placeholder.');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function quote(string|array $value): string|false
+    {
+        if (is_array($value)) {
+            if ($value === []) {
+                return 'NULL';
+            }
+
+            $quoted = array_map(
+                fn(mixed $item): string|false => $this->connection->pdo->quote((string) $item),
+                $value
+            );
+
+            return implode(',', $quoted);
+        }
+
+        return $this->connection->pdo->quote($value);
+    }
+
+    /**
+     * @param array<int|string, scalar|null> $params
+     */
+    private function execute(string $sql, array $params = []): PDOStatement
+    {
+        try {
+            $statement = $this->connection->pdo->prepare($sql);
+
+            foreach ($params as $key => $value) {
+                $type = match (true) {
+                    $value === null => PDO::PARAM_NULL,
+                    is_int($value) => PDO::PARAM_INT,
+                    is_bool($value) => PDO::PARAM_BOOL,
+                    default => PDO::PARAM_STR,
+                };
+
+                if (is_int($key)) {
+                    // Positional placeholders are 1-based in PDO bindValue().
+                    $statement->bindValue($key + 1, $value, $type);
+                    continue;
+                }
+
+                $param = str_starts_with($key, ':') ? $key : ':' . $key;
+                $statement->bindValue($param, $value, $type);
+            }
+
+            $statement->execute();
+
+            return $statement;
+        } catch (Throwable $e) {
+            throw new PDOException(
+                sprintf('Database query failed: %s', $e->getMessage()),
+                previous: $e
+            );
+        }
     }
 }
