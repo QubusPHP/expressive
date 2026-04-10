@@ -1770,7 +1770,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
             return '';
         }
 
-        if (count($params) === 1 && is_array($params[0])) {
+        if (count($params) === 1 && (isset($params[0]) && is_array($params[0]))) {
             /** @var array<int|string, scalar|null> $params */
             $params = $params[0];
         }
