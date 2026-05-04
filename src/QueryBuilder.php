@@ -291,7 +291,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
             return $this;
         } else {
             $this->pdoStmt = $this->connection->pdo->prepare(query: $query);
-            $this->pdoExecuted = $this->pdoStmt->execute(params: $parameters);
+            $this->pdoExecuted = $this->pdoStmt->execute($parameters);
             if ($returnAsPdoStmt) {
                 return $this->pdoStmt;
             } else {
