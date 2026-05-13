@@ -63,6 +63,9 @@ abstract class PdoConnection implements Connection
 
         try {
             $pdo = new PDO($dsn, $user, $pass, $options);
+            if (($config['driver'] ?? null) === 'pdo_sqlite') {
+                $pdo->exec('PRAGMA foreign_keys = ON');
+            }
         } catch (PDOException $e) {
             throw new RuntimeException(sprintf("PDO Connection failed: %s", $e->getMessage()), 0, $e);
         }
