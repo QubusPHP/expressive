@@ -1382,13 +1382,20 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
 
             // all fine, commit the transaction
             $this->commit();
-        } catch (PDOException $e) { // catch any errors generated in the callback
-            // rollback on error
-            $this->rollBack();
-            throw new QueryBuilderException(message: $e->getMessage(), code: (int) $e->getCode());
-        }
 
-        return $result;
+            return $result;
+        } catch (Throwable $e) { // catch any errors generated in the callback
+            // rollback on error
+            if ($this->inTransaction()) {
+                $this->rollBack();
+            }
+
+            throw new QueryBuilderException(
+                message: $e->getMessage(),
+                code: is_int($e->getCode()) ? $e->getCode() : 0,
+                previous: $e
+            );
+        }
     }
 
     /* ------------------------------------------------------------------------------

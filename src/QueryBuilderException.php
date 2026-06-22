@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Qubus\Expressive;
 
-use Exception;
+use RuntimeException;
 
-class QueryBuilderException extends Exception
+class QueryBuilderException extends RuntimeException
 {
 }
