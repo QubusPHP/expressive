@@ -35,6 +35,7 @@ use function func_num_args;
 use function implode;
 use function is_array;
 use function is_callable;
+use function is_int;
 use function is_numeric;
 use function preg_match;
 use function preg_replace_callback;
@@ -1362,31 +1363,25 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function transactional(Closure $callback, mixed $that = null, mixed $default = null): mixed
     {
-        if (is_null__($that)) {
-            $that = $this;
-        }
+        $that ??= $this;
 
-        // check if we are in a transaction
-        if ($this->inTransaction()) {
-            return $callback($that);
-        }
-
-        $result = $default;
+        $startedTransaction = false;
 
         try {
-            // start the transaction
-            $this->beginTransaction();
+            if (! $this->inTransaction()) {
+                $this->beginTransaction();
+                $startedTransaction = true;
+            }
 
-            // execute the callback
-            $result = $callback($this);
+            $result = $callback($that);
 
-            // all fine, commit the transaction
-            $this->commit();
+            if ($startedTransaction && $this->inTransaction()) {
+                $this->commit();
+            }
 
             return $result;
-        } catch (Throwable $e) { // catch any errors generated in the callback
-            // rollback on error
-            if ($this->inTransaction()) {
+        } catch (Throwable $e) {
+            while ($this->inTransaction()) {
                 $this->rollBack();
             }
 
