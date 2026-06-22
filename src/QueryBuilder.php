@@ -1365,32 +1365,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     {
         $that ??= $this;
 
-        $startedTransaction = false;
-
-        try {
-            if (! $this->inTransaction()) {
-                $this->beginTransaction();
-                $startedTransaction = true;
-            }
-
-            $result = $callback($that);
-
-            if ($startedTransaction && $this->inTransaction()) {
-                $this->commit();
-            }
-
-            return $result;
-        } catch (Throwable $e) {
-            while ($this->inTransaction()) {
-                $this->rollBack();
-            }
-
-            throw new QueryBuilderException(
-                message: $e->getMessage(),
-                code: is_int($e->getCode()) ? $e->getCode() : 0,
-                previous: $e
-            );
-        }
+        return $this->connection->transactional(
+            fn () => $callback($that)
+        );
     }
 
     /* ------------------------------------------------------------------------------

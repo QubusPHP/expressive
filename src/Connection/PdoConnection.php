@@ -16,7 +16,9 @@ use Qubus\Expressive\Traits\IdentifierAware;
 use Qubus\Expressive\Connection;
 use Qubus\Expressive\DbalException;
 use RuntimeException;
+use Throwable;
 
+use function max;
 use function Qubus\Support\Helpers\is_null__;
 use function sprintf;
 
@@ -32,6 +34,8 @@ abstract class PdoConnection implements Connection
         get => 'pdo';
     }
     //phpcs:enable
+
+    private int $transactionLevel = 0;
 
     protected array $config = [];
 
@@ -391,6 +395,54 @@ abstract class PdoConnection implements Connection
             'sqlite' => ($this->config['path'] ?? '') !== ':memory:',
             default  => true,
         };
+    }
+
+    /**
+     * @param Closure $callback
+     * @return mixed
+     * @throws Throwable
+     */
+    public function transactional(Closure $callback): mixed
+    {
+        $level = $this->transactionLevel;
+        $savepoint = 'trans' . ($level + 1);
+        $createdSavepoint = false;
+        $startedTransaction = false;
+
+        try {
+            if ($level === 0) {
+                $this->pdo->beginTransaction();
+                $startedTransaction = true;
+            } else {
+                $this->pdo->exec("SAVEPOINT {$savepoint}");
+                $createdSavepoint = true;
+            }
+
+            $this->transactionLevel++;
+
+            $result = $callback();
+
+            $this->transactionLevel--;
+
+            if ($startedTransaction) {
+                $this->pdo->commit();
+            } elseif ($createdSavepoint) {
+                $this->pdo->exec("RELEASE SAVEPOINT {$savepoint}");
+            }
+
+            return $result;
+        } catch (Throwable $e) {
+            $this->transactionLevel = max(0, $level);
+
+            if ($createdSavepoint) {
+                $this->pdo->exec("ROLLBACK TO SAVEPOINT {$savepoint}");
+                $this->pdo->exec("RELEASE SAVEPOINT {$savepoint}");
+            } elseif ($startedTransaction && $this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $e;
+        }
     }
 
     // Must be implemented by each driver
