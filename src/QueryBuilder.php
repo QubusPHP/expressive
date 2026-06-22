@@ -710,7 +710,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     {
         $placeholders = $this->makePlaceholders(numberOfPlaceholders: count($values));
 
-        return $this->where(condition: "({$columnName} NOT IN ({$placeholders}))", parameters: $values);
+        return $this->where(condition: "{$columnName} NOT IN ({$placeholders})", parameters: $values);
     }
 
     /**
@@ -718,7 +718,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function whereNull(string $columnName): self
     {
-        return $this->where(condition: "({$columnName} IS NULL)");
+        return $this->where(condition: "{$columnName} IS NULL");
     }
 
     /**
@@ -726,7 +726,7 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function whereNotNull(string $columnName): self
     {
-        return $this->where(condition: "({$columnName} IS NOT NULL)");
+        return $this->where(condition: "{$columnName} IS NOT NULL");
     }
 
     public function having($statement, string $operator = self::OPERATOR_AND): self
