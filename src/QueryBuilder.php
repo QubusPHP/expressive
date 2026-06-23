@@ -807,13 +807,18 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      * {@inheritDoc}
      */
     public function join(
-        string $tableName,
+        string|Database $tableName,
         string $constraint,
         string $tableAlias = '',
         string $joinOperator = self::JOIN_LEFT
     ): self {
         $this->isFluentQuery = true;
-        $join = trim(string: "{$joinOperator} JOIN");
+
+        if ($tableName instanceof Database) {
+            $tableName = $tableName->getTableName();
+        }
+
+        $join = trim(string: "{$joinOperator} JOIN {$tableName}");
         $join .= self::EOL_TAB;
         $join .= "AS {$tableAlias} ";
         $join .= self::EOL_TAB . self::TAB;
@@ -1662,10 +1667,10 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      * Format the table{Primary|Foreign}KeyName
      *
      * @param string $pattern
-     * @param string $tablename
+     * @param string|null $tablename
      * @return string
      */
-    protected function formatKeyname(string $pattern, string $tablename): string
+    protected function formatKeyname(string $pattern, ?string $tablename = null): string
     {
         return sprintf($pattern, $tablename);
     }
