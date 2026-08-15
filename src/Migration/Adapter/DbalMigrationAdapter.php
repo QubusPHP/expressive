@@ -10,7 +10,7 @@ use Qubus\Expressive\Connection;
 use Qubus\Expressive\Migration\Migration;
 use Qubus\Support\DateTime\QubusDateTimeImmutable;
 
-class DbalMigrationAdapter implements MigrationAdapter
+class DbalMigrationAdapter implements MigrationAdapter, ConnectionAwareMigrationAdapter
 {
     public function __construct(protected Connection $connection, protected string $tableName)
     {

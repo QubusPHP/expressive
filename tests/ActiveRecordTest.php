@@ -49,3 +49,31 @@ it(description: 'should return the same QueryBuilder results', closure: function
     $activeRecord = Qubus\Tests\Expressive\ActiveRecord\User::dbalQuery()->find();
     Assert::assertEquals(expected: $items, actual: $activeRecord);
 });
+
+it('creates the called model subclass', function () {
+    $id = '01KARCREATE0000000000000001';
+    $user = Qubus\Tests\Expressive\ActiveRecord\User::create([
+        'user_id' => $id,
+        'username' => 'created-user',
+        'first_name' => 'Created',
+        'last_name' => 'User',
+        'email' => 'created-user@gmail.com',
+    ]);
+
+    expect($user)->toBeInstanceOf(Qubus\Tests\Expressive\ActiveRecord\User::class)
+        ->and($user->exists)->toBeTrue()
+        ->and($user->getData('user_id'))->toBe($id);
+});
+
+it('persists and deletes an active record row', function () {
+    $id = '01K6TYWFJCEFVA8E5ZRF0CGSHV';
+    $row = Qubus\Tests\Expressive\ActiveRecord\User::find($id);
+
+    expect($row)->not->toBeNull();
+    $row->first_name = 'Updated';
+
+    expect($row->save())->not->toBeFalse()
+        ->and(Qubus\Tests\Expressive\ActiveRecord\User::find($id)->first_name)->toBe('Updated')
+        ->and($row->delete())->toBe(1)
+        ->and(Qubus\Tests\Expressive\ActiveRecord\User::find($id))->toBeNull();
+});

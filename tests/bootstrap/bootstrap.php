@@ -1,9 +1,9 @@
 <?php
 
-use Qubus\Expressive\Connection\DriverConnection;
+use Qubus\Expressive\Connection\Pdo\Sqlite;
 use Qubus\Expressive\Schema\CreateTable;
 
-$connection = DriverConnection::make(config: 'mysql://db:db@db:3306/dbal?charset=utf8mb4');
+$connection = new Sqlite(config: ['driver' => 'pdo_sqlite', 'dsn' => 'sqlite::memory:']);
 
 $users = [
     [
@@ -36,31 +36,26 @@ $users = [
     ]
 ];
 
-try {
-    $schema = $connection->queryBuilder()->schema();
-    if (!$schema->hasTable(table: 'users')) {
-        $schema
-                ->create(table: 'users', callback: function (CreateTable $table) {
-                    $table->string(name: 'user_id', length: 36)
-                            ->primary()
-                            ->unique(name: 'userId');
-                    $table->string(name: 'username', length: 191)
-                            ->unique(name: 'username')
-                            ->notNull();
-                    $table->string(name: 'first_name', length: 191);
-                    $table->string(name: 'last_name', length: 191);
-                    $table->string(name: 'email', length: 191)
-                            ->unique(name: 'email')
-                            ->notNull();
-                });
+$schema = $connection->queryBuilder()->schema();
+if (!$schema->hasTable(table: 'users')) {
+    $schema->create(table: 'users', callback: function (CreateTable $table) {
+        $table->string(name: 'user_id', length: 36)
+            ->primary()
+            ->unique(name: 'userId');
+        $table->string(name: 'username', length: 191)
+            ->unique(name: 'username')
+            ->notNull();
+        $table->string(name: 'first_name', length: 191);
+        $table->string(name: 'last_name', length: 191);
+        $table->string(name: 'email', length: 191)
+            ->unique(name: 'email')
+            ->notNull();
+    });
 
-        foreach ($users as $user) {
-            $connection->queryBuilder()->table(tableName: 'users')
-                ->insert(data: $user);
-        }
+    foreach ($users as $user) {
+        $connection->queryBuilder()->table(tableName: 'users')
+            ->insert(data: $user);
     }
-
-    return $connection;
-} catch (\Qubus\Exception\Exception $e) {
-    echo $e->getMessage();
 }
+
+return $connection;

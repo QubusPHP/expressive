@@ -75,6 +75,6 @@ class Pgsql extends PdoConnection
     }
 
     public string $driverName {
-        get => 'pgsql';
+    get => 'pgsql';
     }
 }

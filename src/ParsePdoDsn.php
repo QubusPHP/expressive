@@ -19,6 +19,15 @@ final readonly class ParsePdoDsn
 
     public static function fromString(string $dsn): self
     {
+        if (preg_match('/^(sqlite(?:2|3)?):\/\/\/(.*)$/i', $dsn, $matches) === 1) {
+            $path = rawurldecode($matches[2]);
+
+            return new self(
+                driver: strtolower($matches[1]),
+                path: $path === ':memory:' ? $path : '/' . $path,
+            );
+        }
+
         return str_contains($dsn, '://')
         ? self::fromUri($dsn)
         : self::fromPdoDsn($dsn);
@@ -136,8 +145,18 @@ final readonly class ParsePdoDsn
     public function port(): ?int
     {
         $port = $this->get('port');
+        if ($port === null) {
+            return null;
+        }
 
-        return $port !== null ? (int) $port : null;
+        $validated = filter_var($port, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1, 'max_range' => 65535],
+        ]);
+        if ($validated === false) {
+            throw new InvalidArgumentException('DSN port must be an integer between 1 and 65535.');
+        }
+
+        return $validated;
     }
 
     public function database(): ?string

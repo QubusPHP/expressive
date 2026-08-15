@@ -62,7 +62,6 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
     public const string TAB = "\t";
     public const string EOL_TAB = "\n\t";
 
-    protected static ?QueryBuilder $instance = null;
     //phpcs:disable
     protected Connection $connection {
         get => $this->connection;
@@ -146,12 +145,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         string $primaryKeyName = 'id',
         ?string $tablePrefix = null
     ): self {
-        if (static::$instance === null) {
-            static::$instance = new self($connection)
-                ->setStructure(primaryKeyName: $primaryKeyName)
-                ->setTablePrefix(tablePrefix: $tablePrefix);
-        }
-        return static::$instance;
+        return new self($connection)
+            ->setStructure(primaryKeyName: $primaryKeyName)
+            ->setTablePrefix(tablePrefix: $tablePrefix);
     }
 
     /**
@@ -291,7 +287,11 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         if ($this->debugSqlQuery) {
             return $this;
         } else {
-            $this->pdoStmt = $this->connection->pdo->prepare(query: $query);
+            $statement = $this->connection->pdo->prepare(query: $query);
+            if (! $statement instanceof PDOStatement) {
+                throw new PDOException('PDO could not prepare the query.');
+            }
+            $this->pdoStmt = $statement;
             $this->pdoExecuted = $this->pdoStmt->execute($parameters);
             if ($returnAsPdoStmt) {
                 return $this->pdoStmt;
@@ -564,8 +564,13 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
             $condition .= ' = ?';
             $parameters = [$parameters];
         } else { // where("column", [1, 2]) => column IN (?,?)
-            $placeholders = $this->makePlaceholders(numberOfPlaceholders: count($parameters));
-            $condition = "({$condition} IN ({$placeholders}))";
+            if ($parameters === []) {
+                $column = '';
+                $condition = '0 = 1';
+            } else {
+                $placeholders = $this->makePlaceholders(numberOfPlaceholders: count($parameters));
+                $condition = "({$condition} IN ({$placeholders}))";
+            }
         }
 
         $this->whereConditions[] = [
@@ -709,6 +714,10 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function whereNotIn(string $columnName, array $values): self
     {
+        if ($values === []) {
+            return $this;
+        }
+
         $placeholders = $this->makePlaceholders(numberOfPlaceholders: count($values));
 
         return $this->where(condition: "{$columnName} NOT IN ({$placeholders})", parameters: $values);
@@ -745,6 +754,11 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function orderBy(string $columnName, string $ordering = 'ASC'): self
     {
+        $ordering = strtoupper($ordering);
+        if (! in_array($ordering, [self::ORDERBY_ASC, self::ORDERBY_DESC], true)) {
+            throw new QueryBuilderException('Order direction must be ASC or DESC.');
+        }
+
         $this->isFluentQuery = true;
         $this->orderBy[] = "{$columnName} {$ordering}";
         return $this;
@@ -765,7 +779,10 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function limit(?int $limit = null): self|int|null
     {
-        if ($limit) {
+        if ($limit !== null) {
+            if ($limit < 0) {
+                throw new QueryBuilderException('Limit must be non-negative.');
+            }
             $this->isFluentQuery = true;
             $this->limit = $limit;
             return $this;
@@ -779,7 +796,10 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function offset(?int $offset = null): self|int|null
     {
-        if ($offset) {
+        if ($offset !== null) {
+            if ($offset < 0) {
+                throw new QueryBuilderException('Offset must be non-negative.');
+            }
             $this->isFluentQuery = true;
             $this->offset = $offset;
             return $this;
@@ -793,6 +813,10 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function pagination(int $perPage, int $page): self
     {
+        if ($perPage <= 0) {
+            throw new QueryBuilderException('Items per page must be greater than zero.');
+        }
+
         $this->limit = $perPage;
         $this->offset = (($page > 0 ? $page : 1) - 1) * $perPage;
 
@@ -905,13 +929,13 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
             $query[] = $this->getHavingString();
             $query[] = self::EOL;
         }
-        if ($this->limit) {
+        if ($this->limit !== null) {
             $query[] = 'LIMIT';
             $query[] = self::EOL_TAB;
             $query[] = $this->limit;
             $query[] = self::EOL;
         }
-        if ($this->offset) {
+        if ($this->offset !== null) {
             $query[] = 'OFFSET';
             $query[] = self::EOL_TAB;
             $query[] = $this->offset;
@@ -1016,6 +1040,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
 
         $columns = [];
         foreach ($this->whereConditions as $condition) {
+            if (! is_array($condition) || $condition['COLUMN'] === '') {
+                continue;
+            }
             $column = $condition['COLUMN'];
             $columns[$column] = !str_contains($column, '.') ? "%this.{$column}" : $column;
         }
@@ -1152,6 +1179,10 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
      */
     public function insert(array $data): self|int
     {
+        if ($data === []) {
+            throw new QueryBuilderException('Insert data cannot be empty.');
+        }
+
         $insertValues = [];
         $questionMarks = [];
 
@@ -1162,6 +1193,11 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
 
         if ($multi) {
             foreach ($data as $d) {
+                if (! is_array($d) || array_keys($d) !== $datafield) {
+                    throw new QueryBuilderException(
+                        'Every bulk insert row must contain the same columns in the same order.'
+                    );
+                }
                 $questionMarks[] = '(' . $this->makePlaceholders(numberOfPlaceholders: count($d)) . ')';
                 $insertValues = array_merge($insertValues, array_values(array: $d));
             }
@@ -1213,7 +1249,9 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         // On single element return the object
         if ($rowCount === 1) {
             $primaryKeyname = $this->getPrimaryKeyname();
-            $data[$primaryKeyname] = $this->lastInsertId(pk: $primaryKeyname);
+            if (! array_key_exists($primaryKeyname, $data) || $data[$primaryKeyname] === null) {
+                $data[$primaryKeyname] = $this->lastInsertId(pk: $primaryKeyname);
+            }
             return $this->fromArray(data: $data);
         }
 
@@ -1768,46 +1806,68 @@ class QueryBuilder implements IteratorAggregate, Stringable, Database
         }
 
         if (str_contains($query, '?')) {
-            $segments = explode('?', $query);
-            $result = array_shift($segments);
-
-            foreach ($segments as $index => $segment) {
+            $index = 0;
+            return preg_replace_callback('/\?/', function () use (&$index, $params): string {
                 if (!array_key_exists($index, $params)) {
                     throw new PDOException(
                         sprintf('Missing positional parameter at index %d.', $index)
                     );
                 }
 
-                $result .= $this->quote((string) $params[$index]) . $segment;
-            }
-
-            return $result;
+                return $this->quotePreparedValue($params[$index++]);
+            }, $query);
         }
 
-        if (preg_match_all('/:[a-zA-Z_][a-zA-Z0-9_]*/', $query, $matches)) {
-            $result = $query;
+        if (preg_match('/:[a-zA-Z_][a-zA-Z0-9_]*/', $query)) {
+            return preg_replace_callback(
+                '/:[a-zA-Z_][a-zA-Z0-9_]*/',
+                function (array $match) use ($params): string {
+                    $placeholder = $match[0];
+                    $lookupKey = ltrim($placeholder, ':');
 
-            foreach (array_unique($matches[0]) as $placeholder) {
-                $lookupKey = ltrim($placeholder, ':');
+                    if (array_key_exists($placeholder, $params)) {
+                        $value = $params[$placeholder];
+                    } elseif (array_key_exists($lookupKey, $params)) {
+                        $value = $params[$lookupKey];
+                    } else {
+                        throw new PDOException(
+                            sprintf('Missing named parameter %s.', $placeholder)
+                        );
+                    }
 
-                if (array_key_exists($placeholder, $params)) {
-                    $value = $params[$placeholder];
-                } elseif (array_key_exists($lookupKey, $params)) {
-                    $value = $params[$lookupKey];
-                } else {
-                    throw new PDOException(
-                        sprintf('Missing named parameter %s.', $placeholder)
-                    );
-                }
-
-                $quoted = $value === null ? 'NULL' : $this->quote((string) $value);
-                $result = str_replace($placeholder, $quoted, $result);
-            }
-
-            return $result;
+                    return $this->quotePreparedValue($value);
+                },
+                $query
+            );
         }
 
         throw new PDOException('The query must contain at least one placeholder.');
+    }
+
+    private function quotePreparedValue(mixed $value): string
+    {
+        if ($value === null) {
+            return 'NULL';
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        if (is_int($value)) {
+            return (string) $value;
+        }
+
+        if (is_float($value)) {
+            return sprintf('%F', $value);
+        }
+
+        $quoted = $this->quote($value);
+        if ($quoted === false) {
+            throw new PDOException('PDO could not quote a query parameter.');
+        }
+
+        return $quoted;
     }
 
     /**

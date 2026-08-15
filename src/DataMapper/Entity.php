@@ -16,7 +16,7 @@ class Entity
         $this->table = $table;
     }
 
-    public function getTable(): string
+    public function getTable(): ?string
     {
         return $this->table;
     }

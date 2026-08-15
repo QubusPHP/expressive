@@ -14,11 +14,11 @@ use const JSON_PRETTY_PRINT;
 class Result implements Countable, IteratorAggregate
 {
     protected ?Model $model = null;
-    protected ?QueryBuilder $query = null;
+    protected QueryBuilder|false|null $query = null;
 
     protected array $rows = [];
 
-    public function __construct(Model $model, ?QueryBuilder $query = null)
+    public function __construct(Model $model, QueryBuilder|false|null $query = null)
     {
         $this->model = $model;
         $this->query = $query;

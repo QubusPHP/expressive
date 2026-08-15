@@ -20,8 +20,8 @@ class HasMany extends Relation
     public function setJoin(): mixed
     {
         return $this->eagerLoading
-            ? $this->related->whereIn((string) $this->foreignKey, (array) $this->eagerKeys)
-            : $this->related->where($this->foreignKey, $this->parent->getData(field: $this->parent->getPrimaryKey()));
+        ? $this->related->whereIn((string) $this->foreignKey, (array) $this->eagerKeys)
+        : $this->related->where($this->foreignKey, $this->parent->getData(field: $this->parent->getPrimaryKey()));
     }
 
     public function match(Model $parent): array

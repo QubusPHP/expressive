@@ -22,27 +22,25 @@ namespace Qubus\Expressive\Schema;
 
 use function implode;
 use function is_array;
-use function Qubus\Support\Helpers\is_null__;
 
 class CreateTable
 {
     /** @var CreateColumn[] $columns */
     protected array $columns = [];
 
-    /** @var string|string[] $primaryKey */
-    protected string|array|null $primaryKey = null;
+    /** @var array{name: string, columns: list<string>}|null */
+    protected ?array $primaryKey = null;
 
-    /** @var string[] $uniqueKeys */
+    /** @var array<string, list<string>> $uniqueKeys */
     protected array $uniqueKeys = [];
 
-    /** @var array $indexes */
+    /** @var array<string, list<string>> $indexes */
     protected array $indexes = [];
 
-    /** @var array $foreignKeys */
+    /** @var array<string, ForeignKey> $foreignKeys */
     protected array $foreignKeys = [];
 
-    /** @var ?string */
-    protected ?string $table = null;
+    protected string $table;
 
     /** @var string|null */
     protected ?string $engine = null;
@@ -76,9 +74,9 @@ class CreateTable
     }
 
     /**
-     * @return string|array|null
+     * @return array{name: string, columns: list<string>}|null
      */
-    public function getPrimaryKey(): string|array|null
+    public function getPrimaryKey(): ?array
     {
         return $this->primaryKey;
     }
@@ -116,9 +114,9 @@ class CreateTable
     }
 
     /**
-     * @return  BaseColumn
+     * @return BaseColumn|null
      */
-    public function getAutoincrement(): BaseColumn
+    public function getAutoincrement(): ?BaseColumn
     {
         return $this->autoincrement;
     }
@@ -138,11 +136,9 @@ class CreateTable
      */
     public function primary(array|string $columns, ?string $name = null): self
     {
-        if (! is_array(value: $columns)) {
-            $columns = [$columns];
-        }
+        $columns = is_array(value: $columns) ? array_values($columns) : [$columns];
 
-        if (is_null__(var: $name)) {
+        if ($name === null) {
             $name = $this->table . '_pk_' . implode(separator: '_', array: $columns);
         }
 
@@ -160,11 +156,9 @@ class CreateTable
      */
     public function unique(array|string $columns, ?string $name = null): self
     {
-        if (! is_array(value: $columns)) {
-            $columns = [$columns];
-        }
+        $columns = is_array(value: $columns) ? array_values($columns) : [$columns];
 
-        if (is_null__(var: $name)) {
+        if ($name === null) {
             $name = $this->table . '_uk_' . implode(separator: '_', array: $columns);
         }
 
@@ -179,11 +173,9 @@ class CreateTable
      */
     public function index(array|string $columns, ?string $name = null): self
     {
-        if (! is_array(value: $columns)) {
-            $columns = [$columns];
-        }
+        $columns = is_array(value: $columns) ? array_values($columns) : [$columns];
 
-        if (is_null__(var: $name)) {
+        if ($name === null) {
             $name = $this->table . '_ik_' . implode(separator: '_', array: $columns);
         }
 
@@ -197,11 +189,9 @@ class CreateTable
      */
     public function foreign(array|string $columns, ?string $name = null): ForeignKey
     {
-        if (! is_array(value: $columns)) {
-            $columns = [$columns];
-        }
+        $columns = is_array(value: $columns) ? array_values($columns) : [$columns];
 
-        if (is_null__(var: $name)) {
+        if ($name === null) {
             $name = $this->table . '_fk_' . implode(separator: '_', array: $columns);
         }
 

@@ -6,9 +6,11 @@ namespace Qubus\Expressive\Connection;
 
 use Qubus\Exception\Data\TypeException;
 use Qubus\Expressive\Connection;
+use Qubus\Expressive\ParsePdoDsn;
+use Throwable;
 
 use function sprintf;
-use function str_contains;
+use function str_starts_with;
 
 class DriverConnection
 {
@@ -23,13 +25,14 @@ class DriverConnection
             $config = self::parseDsn($config);
         }
 
-        if (is_array($config)) {
-            $config['driver'] = !str_contains($config['driver'], 'pdo_')
-            ? sprintf('pdo_%s', $config['driver'])
-            : $config['driver'];
+        $driver = $config['driver'] ?? null;
+        if (! is_string($driver) || $driver === '') {
+            throw new TypeException(message: 'A PDO driver must be provided.');
         }
 
-        return match ($config['driver'] ?? null) {
+        $config['driver'] = str_starts_with($driver, 'pdo_') ? $driver : sprintf('pdo_%s', $driver);
+
+        return match ($config['driver']) {
             'pdo_mysql'  => new Connection\Pdo\Mysql($config),
             'pdo_pgsql'  => new Connection\Pdo\Pgsql($config),
             'pdo_sqlite' => new Connection\Pdo\Sqlite($config),
@@ -48,27 +51,18 @@ class DriverConnection
      */
     protected static function parseDsn(string $url): array
     {
-        $parts = parse_url($url);
-        if ($parts === false) {
+        try {
+            $dsn = ParsePdoDsn::fromString($url);
+        } catch (Throwable) {
             throw new TypeException(message: sprintf("Invalid DSN: %s", $url));
         }
 
-        $scheme = $parts['scheme'] ?? '';
-        $driver = "pdo_{$scheme}";
-
-        $query = [];
-        if (!empty($parts['query'])) {
-            parse_str($parts['query'], $query);
+        $config = $dsn->toArray();
+        if (isset($config['user'])) {
+            $config['username'] = $config['user'];
+            unset($config['user']);
         }
 
-        return [
-            'driver'   => $driver,
-            'host'     => $parts['host'] ?? null,
-            'port'     => $parts['port'] ?? null,
-            'username'     => $parts['user'] ?? null,
-            'password'     => $parts['pass'] ?? null,
-            'dbname'   => ltrim(string: $parts['path'] ?? '', characters: '/'),
-            ...$query
-        ];
+        return $config;
     }
 }

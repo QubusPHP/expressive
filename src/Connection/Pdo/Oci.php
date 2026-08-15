@@ -4,10 +4,18 @@ declare(strict_types=1);
 
 namespace Qubus\Expressive\Connection\Pdo;
 
+use PDO;
 use Qubus\Expressive\Connection\PdoConnection;
 
 class Oci extends PdoConnection
 {
+    public function listTables(): array
+    {
+        $statement = $this->pdo->query('SELECT table_name FROM user_tables ORDER BY table_name');
+
+        return $statement->fetchAll(PDO::FETCH_COLUMN);
+    }
+
     public static function buildDsn(array $config): string
     {
         $host = $config['host'] ?? 'localhost';
@@ -17,6 +25,6 @@ class Oci extends PdoConnection
     }
 
     public string $driverName {
-        get => 'oci';
+    get => 'oci';
     }
 }

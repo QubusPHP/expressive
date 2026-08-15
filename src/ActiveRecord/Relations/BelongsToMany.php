@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Qubus\Expressive\ActiveRecord\Relations;
 
 use Qubus\Expressive\ActiveRecord\Model;
+use Qubus\Expressive\QueryBuilder;
 
 class BelongsToMany extends Relation
 {
-    protected ?string $pivotBuilder = null;
+    protected QueryBuilder $pivotBuilder;
     protected mixed $pivotResult = null;
 
     protected string|int|null $foreignKey = null;
@@ -17,7 +18,7 @@ class BelongsToMany extends Relation
     public function __construct(
         Model $parent,
         Model $related,
-        mixed $pivotBuilder,
+        QueryBuilder $pivotBuilder,
         string|int|null $foreignKey = null,
         string|int|null $otherKey = null
     ) {
@@ -31,18 +32,23 @@ class BelongsToMany extends Relation
     public function setJoin(): mixed
     {
         if ($this->eagerLoading) {
-            $pivotQuery = $this->pivotBuilder->whereIn((string)$this->foreignKey, (array) $this->eagerKeys)->get();
+            $pivotQuery = $this->pivotBuilder
+                ->whereIn((string) $this->foreignKey, (array) $this->eagerKeys)
+                ->find();
         } else {
             $pivotQuery = $this->pivotBuilder->where(
                 $this->foreignKey,
                 $this->parent->getData(field: $this->parent->getPrimaryKey())
-            )->get();
+            )->find();
         }
-
 
         $otherId = [];
 
-        $this->pivotResult = $pivotQuery->resultArray();
+        $this->pivotResult = [];
+        foreach ($pivotQuery as $row) {
+            $this->pivotResult[] = $row->toArray();
+        }
+
         foreach ($this->pivotResult as $row) {
             $otherId[] = $row[$this->otherKey];
         }
@@ -50,8 +56,8 @@ class BelongsToMany extends Relation
         $otherId = array_unique(array: $otherId);
 
         return !empty($otherId)
-            ? $this->related->whereIn($this->related->getPrimaryKey(), $otherId)
-            : $this->related->whereIn($this->related->getPrimaryKey(), []);
+        ? $this->related->whereIn($this->related->getPrimaryKey(), $otherId)
+        : $this->related->whereIn($this->related->getPrimaryKey(), []);
     }
 
     public function match(Model $parent): array

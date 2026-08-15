@@ -104,6 +104,6 @@ class Mysql extends PdoConnection
     }
 
     public string $driverName {
-        get => 'mysql';
+    get => 'mysql';
     }
 }

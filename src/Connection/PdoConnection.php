@@ -232,9 +232,12 @@ abstract class PdoConnection implements Connection
      * Run transactional queries.
      *
      * @param Closure $callback transaction callback
-     * @throws Exception
+     * @param mixed|null $that
+     * @param mixed|null $default
+     * @return mixed
+     * @throws Throwable
      */
-    public function transaction(Closure $callback, mixed $that = null, mixed $default = null)
+    public function transaction(Closure $callback, mixed $that = null, mixed $default = null): mixed
     {
         if (is_null__($that)) {
             $that = $this;
@@ -245,21 +248,21 @@ abstract class PdoConnection implements Connection
             return $callback($that);
         }
 
-        $result = $default;
-
         try {
             // start the transaction
             $this->startTransaction();
 
             // execute the callback
-            $result = $callback($this);
+            $result = $callback($that);
 
             // all fine, commit the transaction
             $this->commitTransaction();
-        } catch (PDOException $e) { // catch any errors generated in the callback
-            // rollback on error
-            $this->rollbackTransaction();
-            throw new Exception(message: $e->getMessage(), code: (int) $e->getCode());
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->rollbackTransaction();
+            }
+
+            throw $e;
         }
 
         return $result;
@@ -305,18 +308,21 @@ abstract class PdoConnection implements Connection
      * Prepares a query.
      *
      * @param   string $query SQL query
-     * @param   array $params Query parameters
-     * @return  array
+     * @param array<int|string, scalar|null> $params Query parameters
+     * @return array{query: string, params: array<int|string, scalar|null>, statement: PDOStatement}
      */
     protected function prepare(string $query, array $params): array
     {
         try {
             $statement = $this->pdo->prepare(query: $query);
+            if (! $statement instanceof PDOStatement) {
+                throw new PDOException('PDO could not prepare the query.');
+            }
         } catch (PDOException $e) {
             throw new DbalException(
-                message: $e->getMessage() . ' [ ' . $this->replaceParams(query: $query, params: $params) . ' ] ',
+                message: $e->getMessage() . ' [ ' . $query . ' ] ',
                 code: (int) $e->getCode(),
-                previous: $e->getPrevious()
+                previous: $e
             );
         }
 
@@ -325,7 +331,7 @@ abstract class PdoConnection implements Connection
 
     /**
      * @param PDOStatement $statement
-     * @param array $values
+     * @param array<int|string, scalar|null> $values
      */
     protected function bindValues(PDOStatement $statement, array $values): void
     {
@@ -340,14 +346,18 @@ abstract class PdoConnection implements Connection
                 $param = PDO::PARAM_BOOL;
             }
 
-            $statement->bindValue(param: $key + 1, value: $value, type: $param);
+            $placeholder = is_int($key)
+            ? $key + 1
+            : (str_starts_with($key, ':') ? $key : ':' . $key);
+
+            $statement->bindValue(param: $placeholder, value: $value, type: $param);
         }
     }
 
     /**
      * Executes a prepared query and returns true on success or false on failure.
      *
-     * @param   array $prepared Prepared query
+     * @param array{query: string, params: array<int|string, scalar|null>, statement: PDOStatement} $prepared
      * @return  bool
      */
     protected function pdoExecute(array $prepared): bool
@@ -358,10 +368,11 @@ abstract class PdoConnection implements Connection
             }
             $result = $prepared['statement']->execute();
         } catch (PDOException $e) {
-            throw new DbalException(message: $e->getMessage() . ' [ ' . $this->replaceParams(
-                query: $prepared['query'],
-                params: $prepared['params']
-            ) . ' ] ', code: (int) $e->getCode(), previous: $e->getPrevious());
+            throw new DbalException(
+                message: $e->getMessage() . ' [ ' . $prepared['query'] . ' ] ',
+                code: (int) $e->getCode(),
+                previous: $e
+            );
         }
 
         return $result;
@@ -447,4 +458,7 @@ abstract class PdoConnection implements Connection
 
     // Must be implemented by each driver
     abstract public static function buildDsn(array $config): string;
+
+    /** @return list<string> */
+    abstract public function listTables(): array;
 }

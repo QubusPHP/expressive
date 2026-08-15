@@ -18,9 +18,6 @@ final class Structure
      */
     public function __construct(string $primaryKey = 'id', string $foreignKey = '%s_id')
     {
-        if ($foreignKey === null) {
-            $foreignKey = $primaryKey;
-        }
         $this->primaryKey = $primaryKey;
         $this->foreignKey = $foreignKey;
     }

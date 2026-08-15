@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\Assert;
 use Qubus\Expressive\Connection;
+use Qubus\Expressive\DataMapper\DataMapperException;
 use Qubus\Expressive\DataMapper\PdoDataMapper;
 
 /** @var Connection $connection */
@@ -55,4 +56,65 @@ it(description: 'should return the same QueryBuilder results', closure: function
 
     $dataMapper = new PdoDataMapper(connection: $connection, entity: \Qubus\Tests\Expressive\DataMapper\User::class);
     Assert::assertEquals(expected: $items, actual: $dataMapper->queryBuilder()->find());
+});
+
+it('finds one entity and filters by a mapped property', function () use ($connection) {
+    $mapper = new PdoDataMapper($connection, \Qubus\Tests\Expressive\DataMapper\User::class);
+
+    $user = $mapper->findOne('01K6TYX0XPE1KVWHC1QNA1NYMP');
+    $matches = $mapper->findAllBy('login', 'user2');
+
+    expect($user)->not->toBeNull()
+        ->and($user->login)->toBe('user2')
+        ->and($matches)->toHaveCount(1)
+        ->and(array_values($matches)[0]->email)->toBe('user2@gmail.com');
+});
+
+it('rejects unsafe or invalid query options', function () use ($connection) {
+    $mapper = new PdoDataMapper($connection, \Qubus\Tests\Expressive\DataMapper\User::class);
+
+    expect(fn () => $mapper->findAll(options: ['direction' => 'ASC; DROP TABLE users']))
+        ->toThrow(DataMapperException::class, 'Sort direction')
+        ->and(fn () => $mapper->findAll(orderBy: 'password'))
+        ->toThrow(DataMapperException::class, 'Unknown entity property')
+        ->and(fn () => $mapper->findAll(options: ['limit' => -1]))
+        ->toThrow(DataMapperException::class, 'non-negative');
+
+    expect($connection->queryBuilder()->schema()->hasTable('users'))->toBeTrue();
+});
+
+it('rejects incomplete hydration rows', function () use ($connection) {
+    $mapper = new PdoDataMapper($connection, \Qubus\Tests\Expressive\DataMapper\User::class);
+
+    expect(fn () => $mapper->hydrate([['user_id' => 'missing-fields']]))
+        ->toThrow(DataMapperException::class, 'is missing');
+});
+
+it('creates, updates, and deletes entities with client-generated ids', function () use ($connection) {
+    $mapper = new PdoDataMapper($connection, \Qubus\Tests\Expressive\DataMapper\User::class);
+    $user = new \Qubus\Tests\Expressive\DataMapper\User();
+    $user->id = '01KDATAMAPPER00000000000001';
+    $user->login = 'mapper-user';
+    $user->fname = 'Mapper';
+    $user->lname = 'User';
+    $user->email = 'mapper-user@gmail.com';
+
+    expect($mapper->create($user))->toBe($user)
+        ->and($mapper->findOne($user->id)?->login)->toBe('mapper-user');
+
+    $user->email = 'updated-mapper-user@gmail.com';
+    expect($mapper->update($user))->toBe($user)
+        ->and($mapper->findOne($user->id)?->email)->toBe('updated-mapper-user@gmail.com');
+
+    $mapper->delete($user->id);
+    expect($mapper->findOne($user->id))->toBeNull();
+});
+
+it('reports uninitialized entity properties before executing SQL', function () use ($connection) {
+    $mapper = new PdoDataMapper($connection, \Qubus\Tests\Expressive\DataMapper\User::class);
+    $user = new \Qubus\Tests\Expressive\DataMapper\User();
+    $user->id = '01KINCOMPLETE000000000000001';
+
+    expect(fn () => $mapper->create($user))
+        ->toThrow(DataMapperException::class, 'property login is not initialized');
 });

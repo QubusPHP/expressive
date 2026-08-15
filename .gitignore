@@ -2,7 +2,8 @@
 .DS_Store
 .idea
 .phpunit.cache
+.phpcs-cache
 vendor
 composer.lock
 index.php
-Sql.php
+memory

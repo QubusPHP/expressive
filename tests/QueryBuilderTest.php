@@ -56,3 +56,43 @@ it(description: 'should return user array that matches', closure: function () us
     });
     Assert::assertEquals(expected: $users, actual: $items);
 });
+
+it('prepares scalar values without corrupting named placeholder prefixes', function () use ($connection) {
+    $builder = $connection->queryBuilder();
+    $sql = $builder->prepare(
+        'SELECT :id AS id, :id2 AS id2, :missing AS missing, :enabled AS enabled',
+        ['id' => 1, 'id2' => 20, 'missing' => null, 'enabled' => false]
+    );
+
+    expect($sql)->toBe('SELECT 1 AS id, 20 AS id2, NULL AS missing, 0 AS enabled');
+});
+
+it('quotes strings when preparing positional values', function () use ($connection) {
+    $sql = $connection->queryBuilder()->prepare('SELECT ? AS value', "value' OR 1=1 --");
+
+    expect($sql)->toBe("SELECT 'value'' OR 1=1 --' AS value");
+});
+
+it('preserves explicit primary keys on insert results', function () use ($connection) {
+    $id = '01KQUERYBUILDER000000000001';
+    $inserted = $connection->queryBuilder()->setStructure('user_id')->table('users')->insert([
+        'user_id' => $id,
+        'username' => 'query-builder-user',
+        'first_name' => 'Query',
+        'last_name' => 'Builder',
+        'email' => 'query-builder-user@gmail.com',
+    ]);
+
+    expect($inserted->getPK())->toBe($id);
+});
+
+it('validates insert payload shapes', function () use ($connection) {
+    $builder = $connection->queryBuilder()->table('users');
+
+    expect(fn () => $builder->insert([]))
+        ->toThrow(\Qubus\Expressive\QueryBuilderException::class, 'cannot be empty')
+        ->and(fn () => $builder->insert([
+            ['username' => 'first', 'email' => 'first@gmail.com'],
+            ['email' => 'second@gmail.com', 'username' => 'second'],
+        ]))->toThrow(\Qubus\Expressive\QueryBuilderException::class, 'same columns');
+});

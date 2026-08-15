@@ -20,15 +20,15 @@ class HasOne extends Relation
     public function setJoin(): mixed
     {
         return $this->eagerLoading
-            ? $this->related->whereIn($this->foreignKey, $this->eagerKeys)
-            : $this->related->where($this->foreignKey, $this->parent->getData(field: $this->parent->getPrimaryKey()));
+        ? $this->related->whereIn($this->foreignKey, $this->eagerKeys)
+        : $this->related->where($this->foreignKey, $this->parent->getData(field: $this->parent->getPrimaryKey()));
     }
 
     public function match(Model $parent): mixed
     {
         return array_find(
-                $this->eagerResults,
-                fn($row) => $row->{$this->foreignKey} === $parent->getData(field: $parent->getPrimaryKey())
+            $this->eagerResults,
+            fn($row) => $row->{$this->foreignKey} === $parent->getData(field: $parent->getPrimaryKey())
         );
     }
 

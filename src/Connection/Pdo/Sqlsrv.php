@@ -9,6 +9,15 @@ use Qubus\Expressive\Connection\PdoConnection;
 
 class Sqlsrv extends PdoConnection
 {
+    public function listTables(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME"
+        );
+
+        return $statement->fetchAll(PDO::FETCH_COLUMN);
+    }
+
     /**
      * Sets the connection encoding.
      *
@@ -39,6 +48,6 @@ class Sqlsrv extends PdoConnection
     }
 
     public string $driverName {
-        get => 'sqlsrv';
+    get => 'sqlsrv';
     }
 }

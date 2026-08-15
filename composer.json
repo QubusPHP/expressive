@@ -23,7 +23,6 @@
         "symfony/options-resolver": "^7"
     },
     "require-dev": {
-        "phpstan/phpstan": "^2.1",
         "qubus/qubus-coding-standard": "^2"
     },
     "autoload": {
@@ -37,6 +36,7 @@
         }
     },
     "scripts": {
+        "analyse": "phpstan analyse --no-progress --debug",
         "test": "vendor/bin/pest",
         "cs-check": "phpcs",
         "cs-fix": "phpcbf"

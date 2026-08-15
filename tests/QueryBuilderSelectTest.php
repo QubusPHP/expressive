@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\Assert;
 use Qubus\Expressive\Connection;
+use Qubus\Expressive\QueryBuilderException;
 
 /** @var Connection $connection */
 $connection = require(__DIR__ . '/bootstrap/bootstrap.php');
@@ -97,4 +98,31 @@ it('should build select string with where condition.', function () use ($connect
     $query = trim($query);
 
     Assert::assertEquals($expected, $query);
+});
+
+it('builds portable empty IN and NOT IN predicates', function () use ($connection) {
+    $emptyIn = $connection->queryBuilder()->table('users')->whereIn('user_id', [])->getSelectQuery();
+    $emptyNotIn = $connection->queryBuilder()->table('users')->whereNotIn('user_id', [])->getSelectQuery();
+
+    expect($emptyIn)->toContain('WHERE', '0 = 1')
+        ->and($emptyNotIn)->toContain('WHERE', '1');
+});
+
+it('rejects unsafe ordering and invalid pagination values', function () use ($connection) {
+    $builder = $connection->queryBuilder()->table('users');
+
+    expect(fn () => $builder->orderBy('username', 'ASC; DROP TABLE users'))
+        ->toThrow(QueryBuilderException::class, 'ASC or DESC')
+        ->and(fn () => $builder->limit(-1))
+        ->toThrow(QueryBuilderException::class, 'non-negative')
+        ->and(fn () => $builder->offset(-1))
+        ->toThrow(QueryBuilderException::class, 'non-negative')
+        ->and(fn () => $builder->pagination(0, 1))
+        ->toThrow(QueryBuilderException::class, 'greater than zero');
+});
+
+it('supports a zero limit', function () use ($connection) {
+    $query = $connection->queryBuilder()->table('users')->limit(0)->getSelectQuery();
+
+    expect($query)->toContain('LIMIT', '0');
 });

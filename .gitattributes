@@ -7,4 +7,5 @@ tests           export-ignore
 phpcs.xml       export-ignore
 phpunit.xml     export-ignore
 LICENSE.md      export-ignore
+phpstan.neon    export-ignore
 README.md       export-ignore

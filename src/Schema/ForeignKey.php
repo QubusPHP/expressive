@@ -20,6 +20,8 @@ declare(strict_types=1);
 
 namespace Qubus\Expressive\Schema;
 
+use LogicException;
+
 use function in_array;
 use function strtoupper;
 
@@ -61,6 +63,10 @@ class ForeignKey
 
     public function getReferencedTable(): string
     {
+        if ($this->refTable === null) {
+            throw new LogicException('A referenced table has not been configured for the foreign key.');
+        }
+
         return $this->refTable;
     }
 
@@ -88,10 +94,7 @@ class ForeignKey
         return $this->actions;
     }
 
-    /**
-     * @param string[] $columns
-     * @return $this
-     */
+    /** @return $this */
     public function references(string $table, string ...$columns): self
     {
         $this->refTable = $table;

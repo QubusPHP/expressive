@@ -56,7 +56,6 @@ class Schema
      * Get the name of the currently used database.
      *
      * @return  string
-     * @throws Exception
      */
     public function getCurrentDatabase(): string
     {
@@ -79,7 +78,7 @@ class Schema
      *
      * @param string $table Table name.
      * @param bool $clear (optional) Refresh table list.
-     * @throws Exception
+     * @return bool
      */
     public function hasTable(string $table, bool $clear = false): bool
     {
@@ -92,7 +91,6 @@ class Schema
      *
      * @param bool $clear (optional) Refresh table list.
      * @return string[]
-     * @throws Exception
      */
     public function getTables(bool $clear = false): array
     {
@@ -125,10 +123,10 @@ class Schema
     /**
      * Get a list with all columns that belong to the specified table.
      *
+     * @param string $table
      * @param bool $clear (optional) Refresh column list.
      * @param bool $names (optional) Return only the column names.
-     * @return false|string[]
-     * @throws Exception
+     * @return false|list<string>|array<string, array{name: string, type: string}>
      */
     public function getColumns(string $table, bool $clear = false, bool $names = true): array|bool
     {
@@ -217,7 +215,6 @@ class Schema
      *
      * @param string $table The table.
      * @param string $name The new name of the table.
-     * @throws Exception
      */
     public function renameTable(string $table, string $name): void
     {
@@ -231,7 +228,6 @@ class Schema
      * Deletes a table.
      *
      * @param string $table Table name.
-     * @throws Exception
      */
     public function drop(string $table): void
     {
@@ -250,7 +246,6 @@ class Schema
      * Deletes all records from a table.
      *
      * @param string $table Table name.
-     * @throws Exception
      */
     public function truncate(string $table): void
     {

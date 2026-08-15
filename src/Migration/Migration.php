@@ -7,6 +7,8 @@ namespace Qubus\Expressive\Migration;
 use ArrayAccess;
 use Qubus\Expressive\Schema;
 use Qubus\Expressive\Migration\Adapter\MigrationAdapter;
+use Qubus\Expressive\Migration\Adapter\ConnectionAwareMigrationAdapter;
+use LogicException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -179,7 +181,7 @@ class Migration
      * Ask for input.
      *
      * @param Question $question
-     * @return mixed
+     * @return string
      */
     public function ask(Question $question): string
     {
@@ -226,6 +228,11 @@ class Migration
 
     public function schema(): Schema
     {
-        return $this->getAdapter()->connection()->getSchema();
+        $adapter = $this->getAdapter();
+        if (! $adapter instanceof ConnectionAwareMigrationAdapter) {
+            throw new LogicException('The configured migration adapter does not provide a database connection.');
+        }
+
+        return $adapter->connection()->getSchema();
     }
 }

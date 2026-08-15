@@ -16,6 +16,7 @@ use Qubus\Expressive\ActiveRecord\Relations\Relation;
 use Qubus\Expressive\Connection;
 use Qubus\Expressive\Database;
 use Qubus\Expressive\QueryBuilder;
+use LogicException;
 
 use function get_called_class;
 use function is_array;
@@ -26,10 +27,15 @@ use function Qubus\Support\Helpers\studly_case;
 
 use const JSON_PRETTY_PRINT;
 
+/**
+ * @phpstan-consistent-constructor
+ * @method $this where(mixed $condition, mixed $parameters = null)
+ * @method $this whereIn(string $columnName, array $values)
+ */
 class Model
 {
     /**
-     * Date format to use for database.
+     * Date format to use for a database.
      */
     public const string DATE_FORMAT = 'Y-m-d H:i:s.u';
     /**
@@ -88,9 +94,7 @@ class Model
 
     public function __construct(array $newData = [])
     {
-        if (is_array(value: $newData)) {
-            $this->setData(field: $newData);
-        }
+        $this->setData(field: $newData);
     }
 
     public static function connection(Connection $connection): Connection
@@ -100,6 +104,13 @@ class Model
 
     protected function dbalQuery(): QueryBuilder
     {
+        if (self::$connection === null) {
+            throw new LogicException('An Active Record connection has not been configured.');
+        }
+        if ($this->tableName === null || $this->tableName === '') {
+            throw new LogicException('An Active Record table name has not been configured.');
+        }
+
         $builder = QueryBuilder::fromInstance(
             connection: self::$connection,
             primaryKeyName: $this->primaryKey,
@@ -186,8 +197,10 @@ class Model
             return false;
         }
 
-        $class = new self(newData: $data);
-        $class->save();
+        $class = new static(newData: $data);
+        if ($class->save() === false) {
+            return false;
+        }
 
         return $class;
     }
@@ -207,7 +220,7 @@ class Model
 
             [$data, $where] = $param;
 
-            return $this->dbalQuery()->update(data: $data)->where(condition: $where);
+            return $this->dbalQuery()->where(condition: $where)->update(data: $data);
         } else {
             return $this->queryBuilder->update(data: $data);
         }
@@ -216,7 +229,7 @@ class Model
     /**
      * @throws ReadOnlyException
      */
-    protected function save(): bool|int|Database|QueryBuilder
+    public function save(): bool|int|Database|QueryBuilder
     {
         $this->isReadOnly(methodName: 'save');
 
@@ -232,8 +245,7 @@ class Model
 
             $return = $this->dbalQuery()->insert(data: $this->data);
 
-            //if ($return !== false) {
-            if ($return->rowCount() > 0) {
+            if ($return instanceof QueryBuilder || $return > 0) {
                 $this->exists = true;
 
                 if ($this->incrementing) {
@@ -245,14 +257,14 @@ class Model
         } else {
             $where = [$this->primaryKey => $this->getData(field: $this->primaryKey)];
 
-            return $this->dbalQuery()->update(data: $this->getData())->where(condition: $where);
+            return $this->dbalQuery()->where(condition: $where)->update(data: $this->getData());
         }
     }
 
     /**
      * @throws ReadOnlyException
      */
-    protected function delete(): bool|Database|QueryBuilder|int
+    public function delete(): bool|Database|QueryBuilder|int
     {
         $this->isReadOnly(methodName: 'delete');
 
@@ -286,7 +298,10 @@ class Model
         }
 
         if ($this->exists) {
-            $this->where($this->primaryKey, $this->getData($this->primaryKey));
+            $this->queryBuilder = $this->dbalQuery()->where(
+                $this->primaryKey,
+                $this->getData($this->primaryKey)
+            );
         }
 
         return $this->queryBuilder->delete();
@@ -299,7 +314,7 @@ class Model
 
     public function getData(?string $field = null): mixed
     {
-        return !empty($field) ? $this->data[$field] : $this->data;
+        return $field !== null ? ($this->data[$field] ?? null) : $this->data;
     }
 
     public function setData(mixed $field, mixed $value = null): void
@@ -478,8 +493,9 @@ class Model
                     continue;
                 }
 
-                $this->data[$field] = $value;
             }
+
+            $this->data[$field] = $value;
         }
     }
 
@@ -554,10 +570,7 @@ class Model
             return $this;
         }
 
-        //return show_error('Unknown function '.$name, 500);
-        return !method_exists(object_or_class: $this, method: $name)
-        ? $this->queryBuilder->{$name}(...$arguments)
-        : $this;
+        return $this->queryBuilder->{$name}(...$arguments);
     }
 
     public static function __callStatic(mixed $name, mixed $arguments): mixed
@@ -593,6 +606,6 @@ class Model
 
     public function __isset(mixed $field): bool
     {
-        return !empty($this->data[ $field ]);
+        return isset($this->data[$field]);
     }
 }

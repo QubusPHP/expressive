@@ -11,6 +11,8 @@ use function call_user_func_array;
 use function method_exists;
 use function Qubus\Support\Helpers\is_null__;
 
+use const JSON_THROW_ON_ERROR;
+
 class Row
 {
     protected ?Model $model = null;
@@ -51,7 +53,7 @@ class Row
 
     public function __isset($field): bool
     {
-        return !empty($this->model->{$field});
+        return isset($this->model->{$field});
     }
 
     public function __call($name, $arguments): mixed
@@ -61,6 +63,10 @@ class Row
         : $this->model;
     }
 
+    /**
+     * @return string
+     * @throws \JsonException
+     */
     public function __toString(): string
     {
         $json = [];
@@ -69,7 +75,7 @@ class Row
             $json[$field] = $this->{$field};
         }
 
-        return json_encode($json);
+        return json_encode($json, JSON_THROW_ON_ERROR);
     }
 
     public function save(): Model|int|bool|QueryBuilder
@@ -78,7 +84,6 @@ class Row
             return $this->model->save();
         } catch (ReadOnlyException $e) {
             error_log($e->getMessage());
-        } finally {
             return false;
         }
     }
@@ -89,7 +94,6 @@ class Row
             return $this->model->delete();
         } catch (ReadOnlyException $e) {
             error_log($e->getMessage());
-        } finally {
             return false;
         }
     }

@@ -70,6 +70,6 @@ class Sqlite extends PdoConnection
     }
 
     public string $driverName {
-        get => 'sqlite';
+    get => 'sqlite';
     }
 }
