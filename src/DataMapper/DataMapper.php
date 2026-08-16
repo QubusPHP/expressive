@@ -6,6 +6,10 @@ namespace Qubus\Expressive\DataMapper;
 
 interface DataMapper
 {
+    /**
+     * @param array{direction?: string, limit?: int, offset?: int} $options
+     * @return array<int|string, SerializableEntity>
+     */
     public function findAll(string $orderBy = '', array $options = []): array;
 
     public function findOne(int|string $id): ?SerializableEntity;

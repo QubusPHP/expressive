@@ -239,7 +239,7 @@ class PdoDataMapper implements DataMapper
     /**
      * @param int|string $id
      * @return void
-     * @throws DataMapperException]
+     * @throws DataMapperException
      */
     public function delete(int|string $id): void
     {

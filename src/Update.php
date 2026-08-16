@@ -11,7 +11,7 @@ interface Update
      *
      * Use the query builder to create the where clause.
      *
-     * @param array|null $data the data to update
+     * @param array<string, mixed>|null $data the data to update
      * @return Database|int|false
      */
     public function update(?array $data = null): Database|int|false;

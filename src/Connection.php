@@ -14,10 +14,13 @@ interface Connection
     public PDO $pdo { get; }
     //phpcs:enable
 
+    /** @param array<int|string, scalar|null> $params */
     public function query(string $sql, array $params = []): ResultSet;
 
+    /** @param array<int|string, scalar|null> $params */
     public function command(string $sql, array $params = []): bool;
 
+    /** @param array<int|string, scalar|null> $params */
     public function column(string $sql, array $params = []): mixed;
 
     public function queryBuilder(): QueryBuilder;

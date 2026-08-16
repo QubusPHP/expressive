@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace Qubus\Expressive;
 
-use ArrayIterator;
-use InternalIterator;
-use Iterator;
 use PDOStatement;
-use SplFixedArray;
 
 interface Select
 {
@@ -19,7 +15,7 @@ interface Select
      * To execute a raw query
      *
      * @param string $query
-     * @param array $parameters
+     * @param array<int|string, mixed> $parameters
      * @param bool $returnAsPdoStmt       True, it will return the PDOStatement
      *                                    false, it will return $this, which can be used for chaining
      *                                    or access the properties of the results.
@@ -37,7 +33,7 @@ interface Select
      * });
      *
      * @param callable|null $callback Run a function on the returned rows
-     * @return callable|bool|int|SplFixedArray|string|ArrayIterator|InternalIterator|array|Iterator
+     * @return mixed The callback result, an iterator of rows, or false when no statement was executed.
      */
     public function find(?callable $callback = null): mixed;
 
@@ -61,7 +57,7 @@ interface Select
     /**
      * Return the select fields as array.
      *
-     * @return array
+     * @return list<string>
      */
     public function getSelectFields(): array;
 
@@ -69,13 +65,13 @@ interface Select
      * Create an instance from the given row (an associative
      * array of data fetched from the database).
      *
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return Database
      */
     public function fromArray(array $data): Database;
 
     /**
-     * @param $statement
+     * @param mixed $statement
      * @param string $operator
      * @return Database
      */

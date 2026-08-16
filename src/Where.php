@@ -90,7 +90,7 @@ interface Where
      * WHERE $columName IN (?,?,?,...)
      *
      * @param string $columnName
-     * @param array $values
+     * @param list<mixed> $values An empty list produces an always-false predicate.
      * @return Database
      */
     public function whereIn(string $columnName, array $values): Database;
@@ -99,7 +99,7 @@ interface Where
      * WHERE $columName NOT IN (?,?,?,...)
      *
      * @param string $columnName
-     * @param array $values
+     * @param list<mixed> $values An empty list adds no predicate.
      * @return Database
      */
     public function whereNotIn(string $columnName, array $values): Database;
@@ -124,15 +124,16 @@ interface Where
      * ORDER BY $columnName (ASC | DESC)
      *
      * @param  string   $columnName - The name of the colum or an expression
-     * @param  string   $ordering   (DESC | ASC)
+     * @param string $ordering `ASC` or `DESC`, case-insensitive.
      * @return Database
+     * @throws QueryBuilderException When the ordering is not `ASC` or `DESC`.
      */
     public function orderBy(string $columnName, string $ordering = 'ASC'): Database;
 
     /**
      * LIMIT $limit
      *
-     * @param int|null $limit
+     * @param int|null $limit A non-negative limit, including zero; null reads the current limit.
      * @return Database|int|null
      */
     public function limit(?int $limit = null): Database|int|null;
@@ -140,7 +141,7 @@ interface Where
     /**
      * OFFSET $offset
      *
-     * @param int|null $offset
+     * @param int|null $offset A non-negative offset; null reads the current offset.
      * @return Database|int|null
      */
     public function offset(?int $offset = null): Database|int|null;

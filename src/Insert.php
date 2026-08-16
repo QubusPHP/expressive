@@ -16,8 +16,8 @@ interface Insert
 
     /**
      * Upsert (basic support)
-     * @param array $conflictCols
-     * @param array $updateData
+     * @param list<string> $conflictCols
+     * @param array<string, mixed> $updateData
      * @return Database
      */
     public function upsert(array $conflictCols, array $updateData): Database;
@@ -31,12 +31,12 @@ interface Insert
     public function lastInsertId(string|null $pk = null): string|false;
 
     /**
-     * Insert new rows
-     * $data can be 2-dimensional to add a bulk insert
-     * If a single row is inserted, it will return its row instance
+     * Insert one or more rows. Bulk rows must contain identical columns in identical order.
+     * If a single row is inserted, its row instance is returned. Bulk inserts return the affected row count.
      *
-     * @param  array    $data - data to populate
+     * @param array<string, mixed>|list<array<string, mixed>> $data Data to insert.
      * @return Database|int
+     * @throws QueryBuilderException When the payload is empty or bulk rows have inconsistent columns.
      */
     public function insert(array $data): Database|int;
 }

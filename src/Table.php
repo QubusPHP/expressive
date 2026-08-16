@@ -55,7 +55,7 @@ interface Table
     /**
      * Return the table structure.
      *
-     * @return array
+     * @return array{primaryKeyname: string, foreignKeyname: string}
      */
     public function getStructure(): array;
 
