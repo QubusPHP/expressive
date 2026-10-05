@@ -336,21 +336,21 @@ abstract class PdoConnection implements Connection
     protected function bindValues(PDOStatement $statement, array $values): void
     {
         foreach ($values as $key => $value) {
-            $param = PDO::PARAM_STR;
+            $type = PDO::PARAM_STR;
 
             if (is_null__(var: $value)) {
-                $param = PDO::PARAM_NULL;
+                $type = PDO::PARAM_NULL;
             } elseif (is_int(value: $value)) {
-                $param = PDO::PARAM_INT;
+                $type = PDO::PARAM_INT;
             } elseif (is_bool(value: $value)) {
-                $param = PDO::PARAM_BOOL;
+                $type = PDO::PARAM_BOOL;
             }
 
-            $placeholder = is_int($key)
+            $param = is_int($key)
             ? $key + 1
             : (str_starts_with($key, ':') ? $key : ':' . $key);
 
-            $statement->bindValue(param: $placeholder, value: $value, type: $param);
+            $statement->bindValue($param, $value, $type);
         }
     }
 
